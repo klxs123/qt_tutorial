@@ -19,12 +19,20 @@ SOURCES += main.cpp\
         mainwindow.cpp \
     connect.cpp \
     userinfoshower.cpp \
-    userinfomanager.cpp
+    userinfomanager.cpp \
+    appconfig.cpp \
+    databaseconnectionpool.cpp \
+    userinfotabwidget.cpp
 
 HEADERS  += mainwindow.h \
     connect.h \
     userinfoshower.h \
-    userinfomanager.h
+    userinfomanager.h \
+    appconfig.h \
+    databaseconnectionpool.h \
+    singleton.hpp \
+    databaseinfo.hpp \
+    userinfotabwidget.h
 
 FORMS    += mainwindow.ui \
     connect.ui \

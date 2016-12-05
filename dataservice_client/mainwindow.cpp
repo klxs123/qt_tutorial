@@ -8,11 +8,13 @@
 #include <QListView>
 #include <QStringList>
 #include <QStringListModel>
-#include <QTabWidget>
+#include "UserInfoTabWidget.h"
 #include <list>
 using namespace std;
 
 #include "userinfomanager.h"
+
+#include "appconfig.h"
 
 MainWindow::MainWindow(QWidget *parent) :
     QMainWindow(parent),
@@ -53,15 +55,60 @@ void MainWindow::createUsersView()
 
     usersList = new QListView(qs);
     usersList->setMaximumWidth(150);
+    usersList->setEditTriggers(QAbstractItemView::NoEditTriggers);//禁止编辑
 
-    connect(usersList, SIGNAL(clicked(QModelIndex)), this, SLOT(onUserClicked(QModelIndex)));
 
-    usersView = new QTabWidget(qs);
+    connect(usersList, SIGNAL(doubleClicked(QModelIndex)), this, SLOT(onUserClicked(QModelIndex)));
+    //必须设置,否则无法发出上下文菜单信号
+    usersList->setContextMenuPolicy(Qt::CustomContextMenu);
+    connect(usersList, SIGNAL(customContextMenuRequested(QPoint)), this, SLOT(onUsersListContextMenu(QPoint)));
+
+    usersView = new UserInfoTabWidget(qs);
+}
+
+void MainWindow::showUser(const QString &name, UserInfoShower::UserInfoShowerMode mode)
+{
+    if(!name.isEmpty() && mode !=UserInfoShower::Adding )
+    {
+        //检查是否已有同一用户的卡片
+        int tabs = usersView->count();
+        for(int i=0; i< tabs; i++)
+        {
+            if(usersView->tabText(i) == name)
+            {
+                return;
+            }
+        }
+    }
+    UserInfo* puser = 0;
+    if(mode != UserInfoShower::Adding)
+    {
+        UserInfoManager fetch;
+        puser = fetch.fullFetchUserInfo(name.toStdString());
+        if(!puser)
+        {
+            return;
+        }
+    }
+    else
+    {
+        puser = new UserInfo;
+    }
+
+
+    UserInfoShower* pshower = new UserInfoShower(usersView, mode);
+    pshower->setUserInfo(puser);
+    usersView->addTab(pshower, name.isEmpty()?"new user":name);
+
+    usersView->setCurrentWidget(pshower);
+    connect(pshower, SIGNAL(nameChanged(QString)), usersView, SLOT(onUserNameChanged(QString)));
+
 }
 
 void MainWindow::onConnectClicked()
 {
     Connect con;
+    con.setDatabaseInfo(AppConfig::Instance().getDatabaseInfo());
     con.exec();
 
     if(con.result() != QDialog::Accepted)
@@ -77,30 +124,72 @@ void MainWindow::onUserClicked(const QModelIndex &index)
 {
     QVariant variant =  usersList->model()->data(index, Qt::DisplayRole);
 
-    string name = variant.toString().toStdString();
-    if(name.empty())
+    showUser(variant.toString());
+}
+
+void MainWindow::onUsersListContextMenu(const QPoint &point)
+{
+    QModelIndex index = usersList->indexAt(point);
+    QMenu myMenu;
+
+    if(index.isValid())
     {
-        return;
+       QVariant variant =  usersList->model()->data(index, Qt::DisplayRole);
+
+       string name = variant.toString().toStdString();
+
+       myMenu.addAction("Open",  this, SLOT(onUserShow()))->setData(QString::fromStdString(name));
+       myMenu.addAction("Erase",  this, SLOT(OnDelUser()))->setData(QString::fromStdString(name));
     }
-    //检查是否已有同一用户的卡片
+
+    myMenu.addAction("Add",  this, SLOT(OnAddUser()));
+
+
+
+    // Show context menu at handling position
+    myMenu.exec(usersList->mapToGlobal(point));
+
+}
+
+void MainWindow::onUserShow()
+{
+    QVariant data = dynamic_cast<QAction*>(QObject::sender())->data();
+
+    showUser(data.toString());
+}
+
+void MainWindow::OnAddUser()
+{
+    showUser("", UserInfoShower::Adding);
+}
+
+void MainWindow::OnDelUser()
+{
+    QVariant name = dynamic_cast<QAction*>(QObject::sender())->data();
+    UserInfoManager::Instance().delUser(name.toString().toStdString());
+
+    //检查是否已有用户的卡片
     int tabs = usersView->count();
     for(int i=0; i< tabs; i++)
     {
-        if(usersView->tabText(i).toStdString() == name)
+        if(usersView->tabText(i) == name)
         {
-            return;
+            usersView->removeTab(i);
+            break;
         }
     }
 
-    UserInfoManager fetch;
-    UserInfo* puser = fetch.fullFetchUserInfo(name);
-    if(!puser)
-    {
-        return;
-    }
-    UserInfoShower* pshower = new UserInfoShower(usersView);
-    pshower->setUserInfo(puser);
-    usersView->addTab(pshower, QString::fromStdString(name));
-    usersView->setCurrentWidget(pshower);
+   QStringListModel* model =   dynamic_cast<QStringListModel*>(usersList->model());
+
+   for(int i=0; i< model->rowCount(); i++)
+   {
+       QModelIndex& index = model->index(i);
+       QVariant variant = model->data(index, Qt::DisplayRole);
+       if(variant == name)
+       {
+           model->removeRow(i);
+           break;
+       }
+   }
 
 }

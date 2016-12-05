@@ -6,23 +6,38 @@
 namespace Ui {
 class UserInfoShower;
 }
-class UserInfo;
+
+
+
+struct UserInfo;
+struct UserInfoEx;
 class UserInfoShower : public QWidget
 {
     Q_OBJECT
 
 public:
-    explicit UserInfoShower(QWidget *parent = 0);
+    enum UserInfoShowerMode
+    {
+        Showing,
+        Adding,
+        Editing,
+    };
+    explicit UserInfoShower(QWidget *parent = 0, UserInfoShowerMode mode = UserInfoShowerMode::Showing );
     ~UserInfoShower();
 
-    void setUserInfo(UserInfo* userInfo);
-
+    void setUserInfo(UserInfo* m_userInfo);
+    const UserInfoEx* getUserInfoEx() const;
+    const UserInfo& getUserInfo() const;
+signals:
+    void nameChanged(const QString& name);
 private:
     Ui::UserInfoShower *ui;
-    UserInfo* userInfo;
+    UserInfoEx* m_userInfo;
+    UserInfoShowerMode m_mode;
 private   slots:
     void onBrowseClick();
     void onUploadClick();
+    void onUserNameChanged(const QString&);
 };
 
 #endif // USERINFOSHOWER_H

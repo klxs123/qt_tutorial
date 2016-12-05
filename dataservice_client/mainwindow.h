@@ -7,9 +7,13 @@ namespace Ui {
 class MainWindow;
 }
 
+#include "userinfoshower.h"
+
 #include <QModelIndex>
 
-class QTableView;
+#include <QPoint>
+
+class UserInfoTabWidget;
 class QTabWidget;
 class QListView;
 class MainWindow : public QMainWindow
@@ -19,15 +23,20 @@ class MainWindow : public QMainWindow
 public:
     explicit MainWindow(QWidget *parent = 0);
     ~MainWindow();
-public slots:
+private slots:
     void onConnectClicked();
     void onUserClicked(const QModelIndex&);
+    void onUsersListContextMenu(const QPoint&point);
+    void onUserShow();
+    void OnAddUser();
+    void OnDelUser();
 
 private:
     Ui::MainWindow *ui;
     void createUsersView();
+    void showUser(const QString& name, UserInfoShower::UserInfoShowerMode= UserInfoShower::Showing);
     QListView* usersList;
-    QTabWidget* usersView;
+    UserInfoTabWidget* usersView;
 };
 
 #endif // MAINWINDOW_H

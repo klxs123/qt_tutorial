@@ -2,8 +2,9 @@
 
 #include <my_global.h>
 #include <mysql.h>
+#include "databaseconnectionpool.h"
 
-int  finish_with_error(MYSQL *con)
+static int  finish_with_error(MYSQL *con)
 {
     fprintf(stderr, "%s\n", mysql_error(con));
     mysql_close(con);
@@ -22,32 +23,11 @@ UserInfoManager::UserInfoManager()
 
 }
 
-bool UserInfoManager::fetchUserInfo(const std::string &name)
-{
-    return false;
-}
-
-int UserInfoManager::fetchUserInfo(std::list<UserInfo *>& users)
-{
-    return 0;
-}
 
 int UserInfoManager::fetchAll(std::list<UserInfo *>& users)
 {
     int count = 0;
-    MYSQL *con = mysql_init(NULL);
-
-    if (con == NULL)
-    {
-        fprintf(stderr, "mysql_init() failed\n");
-        return -1;
-    }
-
-    if (mysql_real_connect(con, "localhost", "root", "root",
-                           "testdb", 3306, NULL, 0) == NULL)
-    {
-        return finish_with_error(con);
-    }
+    MYSQL *con = DatabaseConnectionPool::Instance().getDatabaseObject();
 
     if (mysql_query(con, "SELECT name FROM users"))
     {
@@ -74,27 +54,13 @@ int UserInfoManager::fetchAll(std::list<UserInfo *>& users)
     }
 
     mysql_free_result(result);
-    mysql_close(con);
+
     return count;
 }
 
 UserInfo* UserInfoManager::fullFetchUserInfo(const std::string &name)
 {
-    int count = 0;
-    MYSQL *con = mysql_init(NULL);
-
-    if (con == NULL)
-    {
-        fprintf(stderr, "mysql_init() failed\n");
-        return 0;
-    }
-
-    if (mysql_real_connect(con, "localhost", "root", "root",
-                           "testdb", 3306, NULL, 0) == NULL)
-    {
-        finish_with_error(con);
-        return 0;
-    }
+    MYSQL *con = DatabaseConnectionPool::Instance().getDatabaseObject();
 
     char sql[1024] = {0};
     snprintf(sql, 1023,  "SELECT * FROM users where name='%s';", name.c_str());
@@ -113,6 +79,11 @@ UserInfo* UserInfoManager::fullFetchUserInfo(const std::string &name)
     }
 
     MYSQL_ROW row = mysql_fetch_row(result);
+    if(row == 0)
+    {
+        mysql_free_result(result);
+        return 0;
+    }
     unsigned long *lengths = mysql_fetch_lengths(result);
 
 
@@ -123,33 +94,20 @@ UserInfo* UserInfoManager::fullFetchUserInfo(const std::string &name)
     puser->pic.append(row[UserTableImg], lengths[UserTableImg]);
 
     mysql_free_result(result);
-    mysql_close(con);
+
     return puser;
 }
 
-bool UserInfoManager::updateUserInfo(const UserInfo *user)
+bool UserInfoManager::updateUserInfo(const UserInfoEx *user)
 {
     if(user == 0)
     {
         return false;
     }
-    const char* data = user->pic.c_str();
-    int size = user->pic.length();
+    const char* data = user->pic.second.c_str();
+    size_t size = user->pic.second.length();
 
-    MYSQL *con = mysql_init(NULL);
-
-    if (con == NULL)
-    {
-        fprintf(stderr, "mysql_init() failed\n");
-        return false;
-    }
-
-    if (mysql_real_connect(con, "localhost", "root", "root",
-                           "testdb", 3306, NULL, 0) == NULL)
-    {
-        finish_with_error(con);
-        return false;
-    }
+    MYSQL *con = DatabaseConnectionPool::Instance().getDatabaseObject();
 
     /*  为字符串中某些危险字符增加脱字符（反斜线\) (blob?) 防止用户进行SQL注入攻击  */
 
@@ -158,11 +116,50 @@ bool UserInfoManager::updateUserInfo(const UserInfo *user)
     const char *st = "update users set pic ='%s' where name = '%s'";
     size_t st_len = strlen(st);
     char *query = (char*)malloc(st_len + 2 * size + 1);
-    int len = snprintf(query, st_len + 2 * size + 1, st, chunk, user->name.c_str());
+    int len = snprintf(query, st_len + 2 * size + 1, st, chunk, user->name.second.c_str());
     mysql_real_query(con, query, len);
 
-    mysql_close(con);
     free(chunk);
 
     return true;
+}
+
+int UserInfoManager::addUser(const UserInfo& user)
+{    
+    const char* sql_format = "insert into users values('%s', %d, '%s');";
+
+    const char* data = user.pic.c_str();
+    int pic_size = user.pic.length();
+
+    MYSQL *con = DatabaseConnectionPool::Instance().getDatabaseObject();
+
+    /*  为字符串中某些危险字符增加脱字符（反斜线\) (blob?) 防止用户进行SQL注入攻击  */
+
+    char* chunk = (char*)malloc(2*pic_size +1);
+    mysql_real_escape_string(con, chunk, data, pic_size);
+
+    size_t sql_len =  2*pic_size  +1024;
+
+    char* sql = (char*)malloc(sql_len);
+
+    sql_len =  snprintf(sql, sql_len, sql_format, user.name.c_str(), user.salary, chunk );
+
+    mysql_real_query(con, sql,sql_len);
+
+
+    free(sql);
+    free(chunk);
+
+
+    return 0;
+}
+
+int UserInfoManager::delUser(const std::string &name)
+{
+     MYSQL *con = DatabaseConnectionPool::Instance().getDatabaseObject();
+
+     const char* sql_format = "delete from users where name='%s'";
+     char sql[1024] = {0};
+     int sql_len = snprintf(sql, 1024, sql_format, name.c_str());
+     return mysql_real_query(con, sql, sql_len);
 }
