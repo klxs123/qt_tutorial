@@ -8,7 +8,7 @@
 #include <QListView>
 #include <QStringList>
 #include <QStringListModel>
-#include "UserInfoTabWidget.h"
+#include "userinfotabwidget.h"
 #include <list>
 using namespace std;
 
@@ -203,7 +203,7 @@ void MainWindow::OnDelUser()
 
    for(int i=0; i< model->rowCount(); i++)
    {
-       QModelIndex& index = model->index(i);
+       const QModelIndex& index = model->index(i);
        QVariant variant = model->data(index, Qt::DisplayRole);
        if(variant == name)
        {

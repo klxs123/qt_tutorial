@@ -22,7 +22,7 @@ public:
         Adding,
         Editing,
     };
-    explicit UserInfoShower(QWidget *parent = 0, UserInfoShowerMode mode = UserInfoShowerMode::Showing );
+    explicit UserInfoShower(QWidget *parent = 0, UserInfoShowerMode mode = UserInfoShower::Showing );
     ~UserInfoShower();
 
     void setUserInfo(UserInfo* m_userInfo);

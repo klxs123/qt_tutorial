@@ -7,9 +7,15 @@
 QT       += core gui
 
 greaterThan(QT_MAJOR_VERSION, 4): QT += widgets
+win32 {
+    INCLUDEPATH += "C:\Program Files\MySQL\MySQL Connector C 6.1\include"
+    LIBS+= -L"C:\Program Files\MySQL\MySQL Connector C 6.1\lib" -L"C:\Program Files\MySQL\MySQL Connector C 6.1\lib\vs12"   -llibmysql
+}
 
-INCLUDEPATH += "C:\Program Files\MySQL\MySQL Connector C 6.1\include"
-LIBS+= -L"C:\Program Files\MySQL\MySQL Connector C 6.1\lib" -L"C:\Program Files\MySQL\MySQL Connector C 6.1\lib\vs12"   -llibmysql
+unix {
+    INCLUDEPATH += /usr/local/mysql/include/
+    LIBS+= -L"/usr/local/mysql/lib/"   -llibmysql
+}
 
 TARGET = um_client
 TEMPLATE = app
