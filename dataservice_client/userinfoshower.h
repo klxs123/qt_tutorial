@@ -30,6 +30,7 @@ public:
     const UserInfo& getUserInfo() const;
 signals:
     void nameChanged(const QString& name);
+    void userAdded(const QString& name);
 private:
     Ui::UserInfoShower *ui;
     UserInfoEx* m_userInfo;

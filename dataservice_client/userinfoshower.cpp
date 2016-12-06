@@ -21,11 +21,20 @@ UserInfoShower::UserInfoShower(QWidget *parent, UserInfoShowerMode mode) :
     connect(ui->bt_browse, SIGNAL(clicked(bool)), this, SLOT(onBrowseClick()));
     connect(ui->bt_upload, SIGNAL(clicked(bool)), this, SLOT(onUploadClick()));
     connect(ui->le_user, SIGNAL(textChanged(QString)), this, SLOT(onUserNameChanged(QString)));
+
+    if(mode != UserInfoShowerMode::Adding)
+    {
+        ui->le_user->setEnabled(false);
+    }
 }
 
 UserInfoShower::~UserInfoShower()
 {
     delete ui;
+    if(m_userInfo !=0)
+    {
+        delete m_userInfo;
+    }
 }
 
 void UserInfoShower::setUserInfo(UserInfo *userInfo)
@@ -40,12 +49,14 @@ void UserInfoShower::setUserInfo(UserInfo *userInfo)
     m_userInfo->salary.second = userInfo->salary;
     m_userInfo->pic.second = userInfo->pic;
 
+    //update ui
     if(!m_userInfo->pic.second.empty())
     {
         QPixmap pix;
         pix.loadFromData((const uchar*)m_userInfo->pic.second.c_str(),m_userInfo->pic.second.length());
         ui->lb_img->setPixmap(pix);
     }
+    ui->le_user->setText(QString::fromStdString(userInfo->name));
 }
 
 const UserInfoEx *UserInfoShower::getUserInfoEx() const
@@ -120,7 +131,11 @@ void UserInfoShower::onUploadClick()
     switch(m_mode )
     {
     case UserInfoShowerMode::Adding:
+    {
         um.addUser(this->getUserInfo());
+        emit this->userAdded(QString::fromStdString(m_userInfo->name.second));
+        m_mode = UserInfoShowerMode::Editing;//增加用户后,应为修改模式
+    }
         break;
     case UserInfoShowerMode::Editing:
         um.updateUserInfo(this->m_userInfo);

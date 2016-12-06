@@ -55,6 +55,8 @@ void MainWindow::createUsersView()
 
     usersList = new QListView(qs);
     usersList->setMaximumWidth(150);
+    usersList->setSizeAdjustPolicy(QAbstractScrollArea::AdjustToContents);
+    //usersList->setSizePolicy(QSizePolicy::Expanding, QSizePolicy::Expanding);
     usersList->setEditTriggers(QAbstractItemView::NoEditTriggers);//禁止编辑
 
 
@@ -76,6 +78,8 @@ void MainWindow::showUser(const QString &name, UserInfoShower::UserInfoShowerMod
         {
             if(usersView->tabText(i) == name)
             {
+				//将已有卡片设置为当前页
+                usersView->setCurrentIndex(i);
                 return;
             }
         }
@@ -102,6 +106,9 @@ void MainWindow::showUser(const QString &name, UserInfoShower::UserInfoShowerMod
 
     usersView->setCurrentWidget(pshower);
     connect(pshower, SIGNAL(nameChanged(QString)), usersView, SLOT(onUserNameChanged(QString)));
+    connect(pshower, SIGNAL(userAdded(QString)), this, SLOT(OnAddUser(QString)));
+
+    delete puser;
 
 }
 
@@ -161,6 +168,19 @@ void MainWindow::onUserShow()
 void MainWindow::OnAddUser()
 {
     showUser("", UserInfoShower::Adding);
+}
+
+void MainWindow::OnAddUser(const QString &name)
+{
+    if(name.isNull() || name.isEmpty())
+    {
+        return;
+    }
+    QStringListModel* model =   dynamic_cast<QStringListModel*>(usersList->model());
+
+    QStringList userNames = model->stringList();
+    userNames << name;
+    model->setStringList(userNames);
 }
 
 void MainWindow::OnDelUser()

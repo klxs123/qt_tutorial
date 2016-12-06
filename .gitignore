@@ -8,3 +8,6 @@
 /dataservice_client/um_client.vcxproj.filters
 *.vcxproj
 /dataservice_client/um_client.vcxproj.user
+*.user
+*.suo
+*.sln

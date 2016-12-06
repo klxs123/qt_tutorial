@@ -29,6 +29,7 @@ private slots:
     void onUsersListContextMenu(const QPoint&point);
     void onUserShow();
     void OnAddUser();
+    void OnAddUser(const QString& name);
     void OnDelUser();
 
 private:

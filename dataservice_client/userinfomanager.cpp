@@ -100,10 +100,11 @@ UserInfo* UserInfoManager::fullFetchUserInfo(const std::string &name)
 
 bool UserInfoManager::updateUserInfo(const UserInfoEx *user)
 {
-    if(user == 0)
+    if(user == 0 || (!user->pic.first && !user->salary.first))
     {
         return false;
     }
+
     const char* data = user->pic.second.c_str();
     size_t size = user->pic.second.length();
 
