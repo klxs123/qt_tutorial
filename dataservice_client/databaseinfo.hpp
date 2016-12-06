@@ -13,7 +13,7 @@ struct DatabaseInfo
     string user;
     string pwd;
     string database;
-    DatabaseInfo():server("localhost"),port(3306)
+    DatabaseInfo():server("192.168.56.1"),port(3306)
       ,user("root"),pwd("root"),database("testdb")
     {
     }
