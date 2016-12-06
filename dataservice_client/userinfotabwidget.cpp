@@ -4,6 +4,7 @@
 
 UserInfoTabWidget::UserInfoTabWidget(QWidget *parent):QTabWidget(parent)
 {
+    setTabsClosable(true);
 
 }
 
