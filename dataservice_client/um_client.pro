@@ -14,7 +14,7 @@ win32 {
 
 unix {
     INCLUDEPATH += /usr/local/mysql/include/
-    LIBS+= -L"/usr/local/mysql/lib/"   -llibmysql
+    LIBS+= -L"/usr/local/mysql/lib/"   -lmysqlclient
 }
 
 TARGET = um_client
