@@ -8,17 +8,15 @@
 
 using std::string;
 
-struct DataBuffer
-{
-    uint8_t* data;
-    uint32_t len;
-};
+
 
 int data_to_send(const DataBuffer* data, DataBuffer* send);
 
 int send_to_data(const DataBuffer* send, DataBuffer* data);
 
 int data_to_send(const string& data, string& send);
+
+
 
 
 #endif

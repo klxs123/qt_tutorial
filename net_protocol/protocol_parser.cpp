@@ -25,11 +25,36 @@ int data_to_send(const string &data, string &send)
 
 int send_to_data(const DataBuffer *send, DataBuffer *data)
 {
-    const char* start = strstr((const char*)send->data, PROTOCOL_START);
-    if(start == 0)
+    const char* source = (const char*)send->data;
+    const char* start = 0;
+    int pos = 0;
+    while(!start)
     {
-        return -1;//not find
+        start = strstr(source + pos, PROTOCOL_START);
+        if(start == 0)
+        {
+           while(source[pos] !=0 && pos < send->len)
+           {
+               pos++;
+           }
+           while(source[pos] == 0 && pos < send->len)
+           {
+               pos++;
+           }
+
+        }
+        else
+        {
+            break;
+        }
+
+        if(pos >= send->len)
+        {
+            return -1;
+        }
+
     }
+
     int start_index = (uint64_t)start - (uint64_t)send->data;
 
     start+=strlen(PROTOCOL_START);

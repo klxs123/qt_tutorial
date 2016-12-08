@@ -4,8 +4,13 @@
 #include <stdlib.h>
 #include <stdint.h>
 #include <cstring>
+#include <iostream>
 #include <unistd.h>
 #include "protocol_parser.h"
+#include "protocol_utils.h"
+#include "data_source.h"
+
+using namespace std;
 
 static const int BUFFERLEN = 1024*10;
 static pthread_mutex_t buffer_lock = PTHREAD_MUTEX_INITIALIZER;
@@ -22,9 +27,22 @@ static Buffer g_buffer;
 
 void get_data(DataBuffer& buffer)
 {
-    buffer.len = strlen(msg);
+    GetUserInfoRequest request;
+    request.users.push_back("zf01");
+    request.users.push_back("zf02");
+    request.users.push_back("zf03");
+    request.fields.push_back("name");
+    request.fields.push_back("img");
+    request.fields.push_back("salary");
+
+    string data;
+
+    make_getuserinfo_request(request, data);
+
+
+    buffer.len = data.length();
     buffer.data  = (uint8_t*)malloc(buffer.len);
-    memcpy(buffer.data, msg, buffer.len);
+    memcpy(buffer.data, data.data(), buffer.len);
 }
 
 void *do_productor(void *p)
@@ -63,6 +81,7 @@ void *do_consumer(void* p)
     Buffer* buffer = (Buffer*)p;
     timeval tv;
     DataBuffer data;
+
     while(1)
     {
         if(buffer->pos == 0)
@@ -74,16 +93,27 @@ void *do_consumer(void* p)
         }
         pthread_mutex_lock(&buffer_lock);
 
-         int ret = send_to_data(&buffer->data, &data);
+        int ret = send_to_data(&buffer->data, &data);
         if(ret > 0 )
         {
             memmove(buffer->data.data, buffer->data.data+ret, buffer->pos - ret);
             buffer->pos -= ret;
-            fprintf(stderr, "consumer:%s\n", data.data);
-            free(data.data);
-            data.len = 0;
         }
+
         pthread_mutex_unlock(&buffer_lock);
+
+        cout << "consumer get msg:" << string((const char*)data.data, data.len) <<endl;
+        GetUserInfoRequest request;
+
+        get_getuserinfo_request(request, string((const char*)data.data, data.len));
+
+        string sql;
+        get_sql(request, sql);
+
+        fprintf(stderr, "msg to sql:%s\n", sql.c_str());
+
+        free(data.data);
+        data.len = 0;
 
     }
 
