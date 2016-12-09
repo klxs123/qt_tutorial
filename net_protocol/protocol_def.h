@@ -50,7 +50,7 @@ struct GetUserInfoResponse
 {
     bool success;
 
-    list<  std::pair<string, map<string, string> > > users;
+    list< map<string, string>  > users;
 };
 
 struct AddUserRequest

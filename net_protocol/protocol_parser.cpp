@@ -18,10 +18,6 @@ int data_to_send(const DataBuffer *data, DataBuffer *send)
     return send->len;
 }
 
-int data_to_send(const string &data, string &send)
-{
-    return 0;
-}
 
 int send_to_data(const DataBuffer *send, DataBuffer *data)
 {

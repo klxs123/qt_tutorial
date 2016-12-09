@@ -9,13 +9,9 @@
 using std::string;
 
 
-
 int data_to_send(const DataBuffer* data, DataBuffer* send);
 
 int send_to_data(const DataBuffer* send, DataBuffer* data);
-
-int data_to_send(const string& data, string& send);
-
 
 
 
