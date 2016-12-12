@@ -17,15 +17,10 @@ static pthread_mutex_t buffer_lock = PTHREAD_MUTEX_INITIALIZER;
 
 static const char* msg = "hello!\n";
 
-struct Buffer
-{
-    DataBuffer data;
-    int pos;
-};
 
-static Buffer g_buffer;
+static string g_buffer;
 
-void get_data(DataBuffer& buffer)
+void get_data(Message& msg)
 {
     GetUserInfoRequest request;
     request.users.push_back("zf01");
@@ -33,29 +28,29 @@ void get_data(DataBuffer& buffer)
     request.users.push_back("zf03");
     request.fields.push_back("name");
     request.fields.push_back("img");
-    request.fields.push_back("salary");
+    request.fields.push_back("salary");    
 
-    string data;
+    msg.data.clear();
+    make_getuserinfo_request(request, msg.data);
+    msg.command = CT_GetUserInfoRequest;
+    msg.num = 0;
 
-    make_getuserinfo_request(request, data);
-
-
-    buffer.len = data.length();
-    buffer.data  = (uint8_t*)malloc(buffer.len);
-    memcpy(buffer.data, data.data(), buffer.len);
 }
 
 void *do_productor(void *p)
 {
-    Buffer* buffer = (Buffer*)p;
-    DataBuffer data;
-    DataBuffer send;
+    string* buffer = (string*)p;
+
+    Message msg;
     timeval tv;
+    string data;
     while(1)
     {
-        get_data(data);
-        data_to_send(&data, &send);
-        while(buffer->data.len - buffer->pos < send.len)
+        get_data(msg);
+
+        msg_to_send_data(msg, data);
+
+        while(buffer->capacity() - buffer->size() < data.length())
         {
             tv.tv_sec = 1;
             tv.tv_usec = 0;
@@ -64,8 +59,8 @@ void *do_productor(void *p)
 
         pthread_mutex_lock(&buffer_lock);
 
-        memcpy(buffer->data.data+buffer->pos, send.data, send.len);
-        buffer->pos += send.len;
+        *buffer+= data;
+        data.clear();
 
         pthread_mutex_unlock(&buffer_lock);
 
@@ -78,51 +73,52 @@ void *do_productor(void *p)
 
 void *do_consumer(void* p)
 {
-    Buffer* buffer = (Buffer*)p;
+    string* buffer = (string*)p;
     timeval tv;
-    DataBuffer data;
+    string data;
 
+    Message msg;
     while(1)
     {
-        if(buffer->pos == 0)
+
+
+        pthread_mutex_lock(&buffer_lock);
+
+        int start_index = extract_packages(*buffer, data);
+
+        if(start_index == -1)
         {
+            pthread_mutex_unlock(&buffer_lock);
             tv.tv_sec = 1;
             tv.tv_usec = 0;
             select(0, 0, 0,0, &tv);
             continue;
         }
-        pthread_mutex_lock(&buffer_lock);
 
-        int ret = send_to_data(&buffer->data, &data);
-        if(ret > 0 )
-        {
-            memmove(buffer->data.data, buffer->data.data+ret, buffer->pos - ret);
-            buffer->pos -= ret;
-        }
+        package_to_msg(msg, data);
+
 
         pthread_mutex_unlock(&buffer_lock);
 
-        cout << "consumer get msg:" << string((const char*)data.data, data.len) <<endl;
+        cout << "consumer get msg:" << msg.data <<endl;
         GetUserInfoRequest request;
 
-        get_getuserinfo_request(request, string((const char*)data.data, data.len));
+        get_getuserinfo_request(request, msg.data);
 
         string sql;
         get_sql(request, sql);
 
         fprintf(stderr, "msg to sql:%s\n", sql.c_str());
 
-        free(data.data);
-        data.len = 0;
+        data.clear();
+        msg.data.clear();
 
     }
 
 }
 void init_buffer()
 {
-    g_buffer.data.data = (uint8_t*)malloc(BUFFERLEN);
-    g_buffer.data.len = BUFFERLEN;
-    g_buffer.pos = 0;
+    g_buffer.reserve(BUFFERLEN);
 }
 
 int main(int argc, char *argv[])

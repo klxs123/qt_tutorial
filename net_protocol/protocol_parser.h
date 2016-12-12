@@ -9,9 +9,15 @@
 using std::string;
 
 
-int data_to_send(const DataBuffer* data, DataBuffer* send);
 
-int send_to_data(const DataBuffer* send, DataBuffer* data);
+
+int msg_to_send_data(const Message& msg, string& data);
+
+int package_to_msg(Message& msg, const string& pkg);
+
+int package_to_msg(Message &msg, const std::string &pkg, size_t pos);
+
+int extract_packages(string& data,string& pkg);
 
 
 

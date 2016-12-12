@@ -5,69 +5,71 @@
 
 
 const char* PROTOCOL_START = "!start!";
-const char* PROTOCOL_END = "!end!";
+const char* PROTOCOL_TAIL = "!end!";
 
-int data_to_send(const DataBuffer *data, DataBuffer *send)
+#define PKG_HEADER_LEN strlen(PROTOCOL_START)
+
+#define PKG_TAIL_LEN strlen(PROTOCOL_TAIL)
+
+int msg_to_send_data(const Message &msg, std::string &data)
 {
-    send->len = strlen(PROTOCOL_START) + strlen(PROTOCOL_END) + sizeof(data->len) + data->len;
-    send->data = (uint8_t*)malloc(send->len);
-    memcpy(send->data, PROTOCOL_START, strlen(PROTOCOL_START));
-    memcpy(send->data+strlen(PROTOCOL_START), &data->len, sizeof(data->len));//data len field
-    memcpy(send->data+strlen(PROTOCOL_START)+ sizeof(data->len), data->data, data->len);
-    memcpy(send->data+ strlen(PROTOCOL_START) + sizeof(data->len) + data->len, PROTOCOL_END, strlen(PROTOCOL_END));
-    return send->len;
+    uint32_t data_len  = strlen(PROTOCOL_START) + strlen(PROTOCOL_TAIL) + sizeof(uint32_t)*2;
+    data.reserve(data_len+data.length());
+    data+= PROTOCOL_START;
+    //此处本应该为数据包编号
+    int package_no = 0;
+    data.insert(data.length(), (const char*)&package_no, sizeof(uint32_t));
+
+    data.insert(data.length(), (const char*)&msg.command, sizeof(uint32_t));
+
+    data+=msg.data;
+    data+=PROTOCOL_TAIL;
+
+    return 0;
+
+}
+
+int package_to_msg(Message &msg, const std::string &pkg)
+{
+   return package_to_msg(msg, pkg, 0);
 }
 
 
-int send_to_data(const DataBuffer *send, DataBuffer *data)
+
+int package_to_msg(Message &msg, const std::string &pkg, size_t pos)
 {
-    const char* source = (const char*)send->data;
-    const char* start = 0;
-    int pos = 0;
-    while(!start)
+    msg.num = *(uint32_t*)(pkg.data()+pos);
+
+    msg.command = (CommandType)*(uint32_t*)(pkg.data()+pos+sizeof(uint32_t));
+
+    size_t start_index = pos + sizeof(uint32_t)*2;
+
+
+
+    msg.data.reserve(pkg.length() - start_index);
+    msg.data.insert(0,pkg.data()+ start_index, pkg.length()- start_index);
+
+    return 0;
+}
+int extract_packages(std::string &data, string& package)
+{
+    if(data.length() == 0)
     {
-        start = strstr(source + pos, PROTOCOL_START);
-        if(start == 0)
-        {
-           while(source[pos] !=0 && pos < send->len)
-           {
-               pos++;
-           }
-           while(source[pos] == 0 && pos < send->len)
-           {
-               pos++;
-           }
-
-        }
-        else
-        {
-            break;
-        }
-
-        if(pos >= send->len)
-        {
-            return -1;
-        }
-
+        return -1;
     }
+    size_t index = data.find(PROTOCOL_START, 0);
 
-    int start_index = (uint64_t)start - (uint64_t)send->data;
+    size_t end_index = data.find(PROTOCOL_TAIL, index);
 
-    start+=strlen(PROTOCOL_START);
-
-    int data_len = *(uint32_t*)start;
-
-    const char* end = strstr(start+sizeof(uint32_t)+data_len, PROTOCOL_END);
-
-    if(end - start - sizeof(uint32_t) != data_len)
+    if(index == string::npos || end_index == string::npos)
     {
         return -1;
     }
 
-    data->len = data_len;
-    data->data = (uint8_t*)malloc(data_len);
+    package = data.substr(index+PKG_HEADER_LEN, end_index - index - PKG_HEADER_LEN);
 
-    memcpy(data->data, start+sizeof(uint32_t), data_len);
+    data.erase(0, end_index + PKG_TAIL_LEN);
 
-    return start_index+strlen(PROTOCOL_START)+sizeof(uint32_t)+data->len + strlen(PROTOCOL_END);
+    return index;
 }
+
