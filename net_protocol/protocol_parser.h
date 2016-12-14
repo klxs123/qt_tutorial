@@ -11,7 +11,7 @@ using std::string;
 
 
 
-int msg_to_send_data(const Message& msg, string& data);
+int msg_to_package(const Message& msg, string& data);
 
 int package_to_msg(Message& msg, const string& pkg);
 

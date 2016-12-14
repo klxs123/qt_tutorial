@@ -11,7 +11,7 @@ const char* PROTOCOL_TAIL = "!end!";
 
 #define PKG_TAIL_LEN strlen(PROTOCOL_TAIL)
 
-int msg_to_send_data(const Message &msg, std::string &data)
+int msg_to_package(const Message &msg, std::string &data)
 {
     uint32_t data_len  = strlen(PROTOCOL_START) + strlen(PROTOCOL_TAIL) + sizeof(uint32_t)*2;
     data.reserve(data_len+data.length());

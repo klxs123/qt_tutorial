@@ -4,7 +4,7 @@
 static const char* field_delimiter = "|";
 using namespace std;
 
-int make_getuserinfo_request(const GetUserInfoRequest &request, string &data)
+int make_request(const GetUserInfoRequest &request, string &data)
 {
     data.clear();
 
@@ -42,7 +42,7 @@ static int split_string(const string&src, const char* delimiter, std::list<strin
     return count;
 }
 
-int get_getuserinfo_request(GetUserInfoRequest &request, const std::string &data)
+int get_request(GetUserInfoRequest &request, const std::string &data)
 {
 
     std::size_t end = data.find(field_delimiter, 0);
@@ -176,7 +176,7 @@ static int data_to_list_map(list<map<string, string> > & obj, const string& data
     return 0;
 }
 
-int make_getuserinfo_response(const GetUserInfoResponse &response, string &data)
+int make_response(const GetUserInfoResponse &response, string &data)
 {
     uint32_t section_num = response.success?response.users.size(): 0;
 
@@ -193,7 +193,7 @@ int make_getuserinfo_response(const GetUserInfoResponse &response, string &data)
     return 0;
 }
 
-int get_getuserinfo_response(GetUserInfoResponse &response, const std::string &data)
+int get_response(GetUserInfoResponse &response, const std::string &data)
 {
 
     uint32_t section_num = *(uint32_t*)data.data();

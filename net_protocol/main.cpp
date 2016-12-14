@@ -9,6 +9,7 @@
 #include "protocol_parser.h"
 #include "protocol_utils.h"
 #include "data_source.h"
+#include "net_client.h"
 
 using namespace std;
 
@@ -31,7 +32,7 @@ void get_data(Message& msg)
     request.fields.push_back("salary");    
 
     msg.data.clear();
-    make_getuserinfo_request(request, msg.data);
+    make_request(request, msg.data);
     msg.command = CT_GetUserInfoRequest;
     msg.num = 0;
 
@@ -48,7 +49,7 @@ void *do_productor(void *p)
     {
         get_data(msg);
 
-        msg_to_send_data(msg, data);
+        msg_to_package(msg, data);
 
         while(buffer->capacity() - buffer->size() < data.length())
         {
@@ -69,6 +70,32 @@ void *do_productor(void *p)
         select(0, 0, 0,0, &tv);
     }
 
+}
+
+static void* client_fun(void* p)
+{
+
+    tcp_client tc;
+    tc.connect("localhost", 3333);
+
+    Message msg;
+    timeval tv;
+    string data;
+    while(1)
+    {
+        get_data(msg);
+
+        msg_to_package(msg, data);
+
+        tc.write(data);
+        data.clear();
+
+        tv.tv_sec = 1;
+        tv.tv_usec = 0;
+        select(0, 0, 0,0, &tv);
+    }
+
+    return 0;
 }
 
 void *do_consumer(void* p)
@@ -103,7 +130,7 @@ void *do_consumer(void* p)
         cout << "consumer get msg:" << msg.data <<endl;
         GetUserInfoRequest request;
 
-        get_getuserinfo_request(request, msg.data);
+        get_request(request, msg.data);
 
         string sql;
         get_sql(request, sql);
@@ -121,6 +148,12 @@ void init_buffer()
     g_buffer.reserve(BUFFERLEN);
 }
 
+
+
+
+
+#include "zf_server.h"
+
 int main(int argc, char *argv[])
 {
     init_buffer();
@@ -131,11 +164,28 @@ int main(int argc, char *argv[])
     pthread_attr_init(&attr);
     pthread_attr_setdetachstate(&attr, PTHREAD_CREATE_JOINABLE);
 
-    int ret  = pthread_create(&tid_productor, &attr, do_productor, &g_buffer);
-    ret = pthread_create(&tid_consumer, &attr, do_consumer, &g_buffer);
+    //int ret  = pthread_create(&tid_productor, &attr, do_productor, &g_buffer);
+    //ret = pthread_create(&tid_consumer, &attr, do_consumer, &g_buffer);
 
-    pthread_join(tid_consumer, 0);
-    pthread_join(tid_productor, 0);
+    //pthread_join(tid_consumer, 0);
+    //pthread_join(tid_productor, 0);
+
+
+
+    zf_server server("127.0.0.1", 3333);
+    server.start();
+
+    pthread_t tid_client;
+    int ret = pthread_create(&tid_client, 0, client_fun, 0);
+
+
+    while(!server.is_stop())
+    {
+        timeval tv;
+        tv.tv_sec = 1;
+        tv.tv_usec = 0;
+        select(0,0,0,0, &tv);
+    }
 
     pthread_attr_destroy(&attr);
     pthread_exit(NULL);

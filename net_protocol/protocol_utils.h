@@ -3,13 +3,13 @@
 
 #include "protocol_def.h"
 
-int make_getuserinfo_request(const GetUserInfoRequest& request, string& data);
+int make_request(const GetUserInfoRequest& request, string& data);
 
-int get_getuserinfo_request(GetUserInfoRequest& request, const string& data);
+int get_request(GetUserInfoRequest& request, const string& data);
 
-int make_getuserinfo_response(const GetUserInfoResponse& response, string& data);
+int make_response(const GetUserInfoResponse& response, string& data);
 
-int get_getuserinfo_response(GetUserInfoResponse& response, const string& data);
+int get_response(GetUserInfoResponse& response, const string& data);
 
 
 #endif
