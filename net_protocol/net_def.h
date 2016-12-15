@@ -11,6 +11,13 @@ struct NetPoint
     uint16_t port;
 };
 
+struct client_sock
+{
+    int sockfd;
+    std::string  data;
+    time_t start;
+};
+
 
 
 #endif

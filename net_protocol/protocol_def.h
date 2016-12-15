@@ -12,6 +12,8 @@ using std::map;
 
 enum CommandType
 {
+    CT_LoginRequest,
+    CT_LoginResponse,
     CT_GetUserInfoRequest,//['username','fields',.....]
     //   | field num |field01|field02|.......|field0n|
     //   |--4byte----| field format:
@@ -33,6 +35,22 @@ struct Message
     {
         return data.length()+ sizeof(uint32_t)*2;
     }
+
+    void clear()
+    {
+        data.clear();
+        num = 0;
+    }
+};
+
+struct LoginRequest
+{
+    std::pair<string,string> user;
+};
+
+struct LoginResponse
+{
+    bool success;
 };
 
 struct GetUserInfoRequest

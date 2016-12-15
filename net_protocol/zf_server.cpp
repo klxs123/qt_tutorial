@@ -3,6 +3,7 @@
 #include "data_source.h"
 
 #include "zf_server.h"
+#include "zf_net_session.h"
 
 #include <unistd.h>
 
@@ -13,7 +14,7 @@ zf_server::zf_server(const std::string &ip, uint32_t port):tcp_server(ip, port)
 }
 
 
-void zf_server::on_data_arriving(client_sock& cs)
+int  zf_server::on_data_arriving(client_sock& cs)
 {
     char buf[1024] = {0};
     ssize_t size = ::read(cs.sockfd, buf, 1024);
@@ -23,20 +24,40 @@ void zf_server::on_data_arriving(client_sock& cs)
 
     if( extract_packages(cs.data, pkg) == -1)
     {
-        return;
+        return -1;
     }
 
     Message msg;
 
     package_to_msg(msg, pkg);
 
-    GetUserInfoRequest request;
+    LoginRequest request;
 
-    get_request(request, msg.data);
+    if( get_request(request, msg.data) == -1)
+    {
+        return -1;
+    }
 
-    string sql;
-    get_sql(request, sql);
+    printf("recv login request:%s:%s\n", request.user.first.c_str(), request.user.second.c_str());
+    //authen request data
+    LoginResponse response;
+    response.success = true;
 
-    printf("get request:%s\n", sql.c_str());
+    msg.clear();
 
+    make_response(response, msg.data);
+    string data;
+    msg_to_package(msg, data);
+
+    ::write(cs.sockfd, data.data(), data.length());
+
+
+    //todo...
+
+    tcp_session* pts = new zf_tcp_session(cs.sockfd);
+    pts->open();
+
+    m_sessions.push_back(pts);
+
+    return 0;
 }

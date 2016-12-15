@@ -12,6 +12,9 @@
 #include "net_session.h"
 
 using namespace std;
+
+static const int TIMEOUT = 5;
+
 tcp_server::~tcp_server()
 {
     for(list<tcp_session*>::iterator it = m_sessions.begin(); it!= m_sessions.end(); it++)
@@ -23,7 +26,7 @@ tcp_server::~tcp_server()
 }
 
 tcp_server::tcp_server(const std::string &ip, uint32_t port):m_sockfd(-1)
-  , m_ip(ip), m_port(port),m_stop(false)
+  , m_ip(ip), m_port(port),m_stop(true)
 {
 
 }
@@ -36,8 +39,6 @@ void* tcp_server::listen_thread(void* p)
     //select
     fd_set readfds;
     fd_set writefds;
-
-    char buffer[256];
 
     struct timeval timeout;
 
@@ -52,11 +53,17 @@ void* tcp_server::listen_thread(void* p)
         //初始化读、写文件描述符集合
         FD_SET(sockfd, &readfds);
 
-        for(list<client_sock>::const_iterator it= obj->m_clientfds.begin(); it!= obj->m_clientfds.end(); it++)
+        for(list<client_sock>::iterator it= obj->m_clientfds.begin(); it!= obj->m_clientfds.end(); )
         {
-           FD_SET(it->sockfd, &readfds);
-           FD_SET(it->sockfd, &writefds);
-           max_fd = max_fd > it->sockfd ? max_fd : it->sockfd;
+            if(time(0) - it->start >= TIMEOUT)
+            {
+                it = obj->m_clientfds.erase(it);
+                continue;
+            }
+            FD_SET(it->sockfd, &readfds);
+            FD_SET(it->sockfd, &writefds);
+            max_fd = max_fd > it->sockfd ? max_fd : it->sockfd;
+            it++;
         }
 
         //构造超时结构体
@@ -71,13 +78,16 @@ void* tcp_server::listen_thread(void* p)
             continue;
         }
         //检查客户端socket是否可读（客户端是否发送消息）
-        for(list<client_sock>::iterator it= obj->m_clientfds.begin(); it!= obj->m_clientfds.end(); it++)
+        for(list<client_sock>::iterator it= obj->m_clientfds.begin(); it!= obj->m_clientfds.end();)
         {
             if (FD_ISSET(it->sockfd, &readfds))
             {
-                obj->on_data_arriving(*it);
+                if( obj->on_data_arriving(*it) != -1)
+                {
+                    it = obj->m_clientfds.erase(it);
+                }
             }
-
+            it++;
         }
 
         //检查是否有新的客户端连接
@@ -93,6 +103,7 @@ void* tcp_server::listen_thread(void* p)
 
             client_sock cs;
             cs.sockfd = newsockfd;
+            cs.start = time(0);
             obj->m_clientfds.push_back(cs);
         }
 
@@ -103,10 +114,9 @@ void* tcp_server::listen_thread(void* p)
 
 int tcp_server::start()
 {
-    stop(true);
-    if(m_sockfd > 0 )
+    if(!m_stop)
     {
-        ::close(m_sockfd);
+        return -1;
     }
 
     m_sockfd = socket(AF_INET, SOCK_STREAM, 0);
@@ -130,14 +140,12 @@ int tcp_server::start()
         return errno;
     }
     listen(m_sockfd,5);
-    if(pthread_create(&m_listenPID, 0, listen_thread, this) ==0)
-    {
-        m_stop = false;
-    }
-    else
+    m_stop = false;
+    if(pthread_create(&m_listenPID, 0, listen_thread, this) !=0)
     {
         m_stop = true;
     }
+
 
     return m_stop?-1:0;
 }

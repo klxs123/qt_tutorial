@@ -3,18 +3,22 @@
 
 
 #include <pthread.h>
+#include <string>
 
 class tcp_session
 {
 public:
     tcp_session(int sock);
     virtual ~tcp_session();
-    int start();
+    int open();
     int close();
 protected:
+    bool m_stop;
     int m_sockfd;
+    std::string  m_data;
     pthread_t m_tid;
-    virtual void handle_recv_data() = 0;
+    static void* sock_thread(void *);
+    virtual int  handle_recv_data() = 0;
 };
 
 

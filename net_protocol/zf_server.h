@@ -10,7 +10,7 @@ class zf_server : public tcp_server
 public:
     zf_server(const std::string& ip, uint32_t port );
 protected:
-    void on_data_arriving(client_sock&);
+    int  on_data_arriving(client_sock&);
 };
 
 

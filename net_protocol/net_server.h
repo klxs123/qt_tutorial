@@ -6,15 +6,10 @@
 #include <list>
 #include <pthread.h>
 
+#include "net_def.h"
+
 
 class tcp_session;
-
-struct client_sock
-{
-    int sockfd;
-    std::string  data;
-    //
-};
 
 class tcp_server
 {
@@ -35,7 +30,7 @@ protected:
     bool m_stop;
     static void* listen_thread(void* p);
 
-    virtual void on_data_arriving(client_sock&) = 0;
+    virtual int  on_data_arriving(client_sock&) = 0;
 };
 
 

@@ -1,6 +1,10 @@
 #include "protocol_utils.h"
 #include <cstring>
 
+#ifdef PROTOCOL_DEBUG
+#include <stdio.h>
+#endif
+
 static const char* field_delimiter = "|";
 using namespace std;
 
@@ -53,12 +57,16 @@ int get_request(GetUserInfoRequest &request, const std::string &data)
     split_string(users_str, delimiter, request.users);
 
     split_string(fields_str, delimiter, request.fields);
+#ifdef PROTOCOL_DEBUG
+    printf("get request:%s\n", users_str.c_str());
+#endif
 
     return 0;
 }
 
+#define LEN_TYPE uint32_t
+const uint32_t LEN_FIELD_LEN = sizeof(LEN_TYPE);
 
-const uint32_t LEN_FIELD_LEN = sizeof(uint32_t);
 //!注意,"数据段"的长度,由包含该"数据段"的上一级的相关函数插入
 /**
 1. 字段数据表示->"fieldname":value
@@ -82,6 +90,57 @@ static int data_to_pair(pair<string, string>& obj, const string& data)
 
     return 0;
 }
+
+static int pair_to_data(const pair<string, string>& obj, string &data)
+{
+    uint32_t original_len = data.length();
+    data += "\"";
+    data += obj.first;
+    data += "\":";
+    data += obj.second;
+
+    return 0;
+}
+
+//pair<string,string> type
+
+static int pair_to_field(const pair<string, string>& obj, string& data)
+{
+    uint32_t original_len = data.length();
+    pair_to_data(obj, data);
+    //开头插入本段数据长度(4个字节)
+    uint32_t field_data_len = data.length() - original_len;
+    data.insert(original_len, (const char*)&field_data_len, LEN_FIELD_LEN);
+}
+
+static int field_to_pair(pair<string, string>& obj, const string&data)
+{
+    LEN_TYPE field_data_len = *(LEN_TYPE*)data.data();
+
+    return  data_to_pair(obj, data.substr(LEN_FIELD_LEN, field_data_len));
+}
+
+//boolean type
+
+static int to_field(bool success, string&data)
+{
+    uint32_t field_data_len = 4;
+
+    data.append((const char*)&field_data_len, LEN_FIELD_LEN);
+
+    uint32_t result = success ? 1:0;
+    data.append((const char*)&result, LEN_FIELD_LEN);
+
+    return 0;
+}
+
+static int from_field(bool& success, const string &data)
+{
+    success = *(LEN_TYPE*)(data.data()+LEN_FIELD_LEN) == 0 ? false: true;
+
+    return 0;
+}
+
 //不包含表示数据长度的开头4字节
 static int data_to_map(map<string, string>& obj, const string& data)
 {
@@ -106,14 +165,7 @@ static int map_to_data(const map<string, string>& obj, string& data)
 {
     for (map<string, string>::const_iterator mit = obj.begin(); mit != obj.end(); mit++)
     {
-        uint32_t original_len = data.length();
-        data += "\"";
-        data += mit->first;
-        data += "\":";
-        data += mit->second;
-        //开头插入本段数据长度(4个字节)
-        uint32_t field_data_len = data.length() - original_len;
-        data.insert(original_len, (const char*)&field_data_len, LEN_FIELD_LEN);
+       pair_to_field(*mit, data);
     }
     //开头插入包含的数据段的数量
     uint32_t section_num = obj.size();
@@ -206,6 +258,25 @@ int get_response(GetUserInfoResponse &response, const std::string &data)
 
     data_to_list_map(response.users, data.substr(sizeof(uint32_t), data.length() - sizeof(uint32_t)));
 
-
     return 0;
+}
+
+int make_request(const LoginRequest &request, string &data)
+{
+    return pair_to_field(request.user, data);;
+}
+
+int get_request(LoginRequest &request, const string &data)
+{
+    return field_to_pair(request.user, data);
+}
+
+int make_response(const LoginResponse &response, string &data)
+{
+    return to_field(response.success, data);
+}
+
+int get_response(LoginResponse &response, const string &data)
+{
+    return from_field(response.success, data);
 }

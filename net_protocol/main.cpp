@@ -21,7 +21,7 @@ static const char* msg = "hello!\n";
 
 static string g_buffer;
 
-void get_data(Message& msg)
+static void get_msg(Message& msg)
 {
     GetUserInfoRequest request;
     request.users.push_back("zf01");
@@ -38,7 +38,7 @@ void get_data(Message& msg)
 
 }
 
-void *do_productor(void *p)
+static void *do_productor(void *p)
 {
     string* buffer = (string*)p;
 
@@ -47,7 +47,7 @@ void *do_productor(void *p)
     string data;
     while(1)
     {
-        get_data(msg);
+        get_msg(msg);
 
         msg_to_package(msg, data);
 
@@ -72,33 +72,7 @@ void *do_productor(void *p)
 
 }
 
-static void* client_fun(void* p)
-{
-
-    tcp_client tc;
-    tc.connect("localhost", 3333);
-
-    Message msg;
-    timeval tv;
-    string data;
-    while(1)
-    {
-        get_data(msg);
-
-        msg_to_package(msg, data);
-
-        tc.write(data);
-        data.clear();
-
-        tv.tv_sec = 1;
-        tv.tv_usec = 0;
-        select(0, 0, 0,0, &tv);
-    }
-
-    return 0;
-}
-
-void *do_consumer(void* p)
+static void *do_consumer(void* p)
 {
     string* buffer = (string*)p;
     timeval tv;
@@ -107,8 +81,6 @@ void *do_consumer(void* p)
     Message msg;
     while(1)
     {
-
-
         pthread_mutex_lock(&buffer_lock);
 
         int start_index = extract_packages(*buffer, data);
@@ -124,14 +96,11 @@ void *do_consumer(void* p)
 
         package_to_msg(msg, data);
 
-
         pthread_mutex_unlock(&buffer_lock);
 
         cout << "consumer get msg:" << msg.data <<endl;
         GetUserInfoRequest request;
-
         get_request(request, msg.data);
-
         string sql;
         get_sql(request, sql);
 
@@ -143,20 +112,74 @@ void *do_consumer(void* p)
     }
 
 }
-void init_buffer()
+static void init_buffer()
 {
     g_buffer.reserve(BUFFERLEN);
 }
 
-
-
-
-
-#include "zf_server.h"
-
-int main(int argc, char *argv[])
+static void* client_fun(void* p)
 {
-    init_buffer();
+
+    tcp_client tc;
+    tc.connect("localhost", 3333);
+    //login
+
+    Message msg;
+    msg.command = CT_LoginRequest;
+    LoginRequest request;
+    request.user.first = "zf";
+    request.user.second = "123456";
+    make_request(request, msg.data);
+    string data;
+    msg_to_package(msg, data);
+
+    tc.write(data);
+    data.clear();
+
+    tc.read(data, 1024);
+
+
+    msg.data.clear();
+    package_to_msg(msg, data);
+
+    LoginResponse response;
+
+    get_response(response, msg.data);
+
+    if(!response.success)
+    {
+        printf("recv login response:failed\n");
+        return 0;
+    }
+
+    printf("recv login response:success\n");
+
+
+    //after login
+
+    timeval tv;
+    data.clear();
+    msg.clear();
+    while(1)
+    {
+        get_msg(msg);
+
+        msg_to_package(msg, data);
+
+        tc.write(data);
+        data.clear();
+
+        tv.tv_sec = 1;
+        tv.tv_usec = 0;
+        select(0, 0, 0,0, &tv);
+    }
+
+    return 0;
+}
+
+
+static void protocol_test()
+{
     pthread_t tid_productor;
     pthread_t tid_consumer;
     pthread_attr_t attr;
@@ -164,14 +187,21 @@ int main(int argc, char *argv[])
     pthread_attr_init(&attr);
     pthread_attr_setdetachstate(&attr, PTHREAD_CREATE_JOINABLE);
 
-    //int ret  = pthread_create(&tid_productor, &attr, do_productor, &g_buffer);
-    //ret = pthread_create(&tid_consumer, &attr, do_consumer, &g_buffer);
+    int ret  = pthread_create(&tid_productor, &attr, do_productor, &g_buffer);
+    ret = pthread_create(&tid_consumer, &attr, do_consumer, &g_buffer);
 
-    //pthread_join(tid_consumer, 0);
-    //pthread_join(tid_productor, 0);
+    pthread_join(tid_consumer, 0);
+    pthread_join(tid_productor, 0);
 
+    pthread_attr_destroy(&attr);
+    pthread_exit(NULL);
 
+}
 
+#include "zf_server.h"
+
+void net_test()
+{
     zf_server server("127.0.0.1", 3333);
     server.start();
 
@@ -186,8 +216,18 @@ int main(int argc, char *argv[])
         tv.tv_usec = 0;
         select(0,0,0,0, &tv);
     }
+}
 
-    pthread_attr_destroy(&attr);
-    pthread_exit(NULL);
+
+
+
+int main(int argc, char *argv[])
+{
+    init_buffer();
+
+    //protocol_test();
+
+    net_test();
+
     return 0;
 }
