@@ -209,7 +209,7 @@ void net_test()
     int ret = pthread_create(&tid_client, 0, client_fun, 0);
 
 
-    while(!server.is_stop())
+    while(!server.is_stopped())
     {
         timeval tv;
         tv.tv_sec = 1;

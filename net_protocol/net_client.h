@@ -10,6 +10,7 @@ public:
     {
         NOERROR,
         CONNECTED,
+        CLOSED,
     };
 
     tcp_client();

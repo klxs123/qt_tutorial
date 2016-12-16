@@ -3,6 +3,8 @@
 
 #include "protocol_def.h"
 
+//每条命令都分为请求与回应，都需要序列化、反序列化，这样，每条命令都需要4个工具函数
+
 //login command
 int make_request(const LoginRequest& request, string& msg_data);
 int get_request(LoginRequest& request, const string& msg_data);

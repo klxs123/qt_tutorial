@@ -37,8 +37,9 @@ int  zf_server::on_data_arriving(client_sock& cs)
     {
         return -1;
     }
-
+#ifdef PROTOCOL_DEBUG
     printf("recv login request:%s:%s\n", request.user.first.c_str(), request.user.second.c_str());
+#endif
     //authen request data
     LoginResponse response;
     response.success = true;
@@ -61,3 +62,5 @@ int  zf_server::on_data_arriving(client_sock& cs)
 
     return 0;
 }
+
+

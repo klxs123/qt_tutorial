@@ -5,6 +5,8 @@
 #include <pthread.h>
 #include <string>
 
+
+
 class tcp_session
 {
 public:
@@ -12,8 +14,15 @@ public:
     virtual ~tcp_session();
     int open();
     int close();
+    bool closed() const;
 protected:
+    enum
+    {
+        CONTINUE,
+        STOP
+    };
     bool m_stop;
+    bool m_stopped;
     int m_sockfd;
     std::string  m_data;
     pthread_t m_tid;

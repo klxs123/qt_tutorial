@@ -22,11 +22,10 @@ int  zf_tcp_session::handle_recv_data()
 
     }while(size > 0 && size == 1024);
 
-    string pkg;
-    extract_packages(m_data, pkg);
+
 
     Message msg;
-    package_to_msg(msg, pkg);
+    extract_msg(m_data, msg);
 
     switch(msg.command)
     {

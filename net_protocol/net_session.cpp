@@ -8,7 +8,7 @@
 
 
 #include "net_session.h"
-tcp_session::tcp_session(int sock):m_stop(true)
+tcp_session::tcp_session(int sock):m_stop(false), m_stopped(true)
 {
     m_sockfd = sock;
 }
@@ -20,7 +20,7 @@ tcp_session::~tcp_session()
 
 int tcp_session::open()
 {
-    if(!m_stop)
+    if(!m_stopped)
     {
         return -1;
     }
@@ -38,7 +38,14 @@ int tcp_session::close()
     m_stop = true;
     pthread_join(m_tid, 0);
     ::close(m_sockfd);
+    m_sockfd = -1;
 }
+
+bool tcp_session::closed() const
+{
+    return m_stopped;
+}
+
 
 void *tcp_session::sock_thread(void *p)
 {
@@ -50,6 +57,7 @@ void *tcp_session::sock_thread(void *p)
     fd_set writefds;
 
     struct timeval timeout;
+    obj->m_stopped = false;
 
     while(!obj->m_stop)
     {
@@ -78,9 +86,14 @@ void *tcp_session::sock_thread(void *p)
             continue;
         }
 
-        obj->handle_recv_data();
+        if(obj->handle_recv_data() == tcp_session::STOP)
+        {
+            break;
+        }
 
     }
+
+    obj->m_stopped = true;
 
     return 0;
 }

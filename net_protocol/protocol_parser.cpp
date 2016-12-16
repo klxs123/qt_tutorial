@@ -73,3 +73,14 @@ int extract_packages(std::string &data, string& package)
     return index;
 }
 
+
+int extract_msg(std::string &data, Message &msg)
+{
+    string pkg;
+    if(extract_packages(data, pkg) == -1)
+    {
+        return -1;
+    }
+
+    return package_to_msg(msg, pkg);
+}

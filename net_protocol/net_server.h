@@ -18,7 +18,7 @@ public:
     virtual ~tcp_server();
     int start();
     void stop(bool sync=false);
-    bool is_stop() const;
+    bool is_stopped() const;
     int sockfd() const;
 protected:
     std::string m_ip;
@@ -27,8 +27,11 @@ protected:
     std::list<client_sock> m_clientfds;
     int m_sockfd;
     pthread_t m_listenPID;
-    bool m_stop;
+    pthread_t m_sessionPID;
+    bool m_stop;//stop command
+    bool m_stopped;//stop status
     static void* listen_thread(void* p);
+    static void* session_thread(void* p);
 
     virtual int  on_data_arriving(client_sock&) = 0;
 };
