@@ -23,6 +23,15 @@ tcp_server::~tcp_server()
     }
 
     m_sessions.clear();
+    for(list<client_sock>::iterator it = m_clientfds.begin(); it!= m_clientfds.end(); it++)
+    {
+        ::close(it->sockfd);
+    }
+
+    if(m_sockfd > 0)
+    {
+        ::close(m_sockfd);
+    }
 }
 
 tcp_server::tcp_server(const std::string &ip, uint32_t port):m_sockfd(-1)

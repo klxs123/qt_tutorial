@@ -2,6 +2,9 @@
 #include <cstring>
 #include <cstdio>
 #include "data_source.h"
+
+#include <mysql.h>
+
 using namespace std;
 
 int get_sql(const GetUserInfoRequest &request, std::string &sql)
@@ -47,6 +50,13 @@ int get_sql(const GetUserInfoRequest &request, std::string &sql)
     return 0;
 }
 
+static void finish_with_error(MYSQL *con)
+{
+  fprintf(stderr, "%s\n", mysql_error(con));
+  mysql_close(con);
+  exit(1);
+}
+
 int process_request(const GetUserInfoRequest &request, GetUserInfoResponse &response)
 {
     string sql;
@@ -55,6 +65,58 @@ int process_request(const GetUserInfoRequest &request, GetUserInfoResponse &resp
         return -1;
     }
 
+    MYSQL *con = mysql_init(NULL);
+
+    if (con == NULL)
+    {
+        fprintf(stderr, "mysql_init() failed\n");
+        exit(1);
+    }
+
+    if (mysql_real_connect(con, "192.168.56.1", "root", "root",
+                           "testdb", 0, NULL, 0) == NULL)
+    {
+        finish_with_error(con);
+    }
+
+    if (mysql_query(con, sql.c_str()))
+    {
+        finish_with_error(con);
+    }
+
+    MYSQL_RES *result = mysql_store_result(con);
+
+    if (result == NULL)
+    {
+        finish_with_error(con);
+    }
+
+    int num_fields = mysql_num_fields(result);
+
+    MYSQL_ROW row;
+
+    while ((row = mysql_fetch_row(result)))
+    {
+        map<string,string> user_info;
+        int index = 0;
+        for(list<string>::const_iterator it = request.fields.begin(); it!=request.fields.end(); it++, index++)
+        {
+            user_info.insert(pair<string,string>(*it, row[index] ? row[index] : "NULL"));
+#ifdef DATASOURCE_DEBUG
+            printf("%s ", row[index] ? row[index] : "NULL");
+#endif
+
+        }
+        response.users.push_back(user_info);
+#ifdef DATASOURCE_DEBUG
+        printf("\n");
+#endif
+    }
+
+    mysql_free_result(result);
+    mysql_close(con);
+
+    response.success = response.users.size() !=0 ? true: false;
 
     return 0;
 }

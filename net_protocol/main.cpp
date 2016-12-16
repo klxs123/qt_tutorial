@@ -24,11 +24,10 @@ static string g_buffer;
 static void get_msg(Message& msg)
 {
     GetUserInfoRequest request;
-    request.users.push_back("zf01");
-    request.users.push_back("zf02");
-    request.users.push_back("zf03");
+    request.users.push_back("Audi");
+    request.users.push_back("Volvo");
+
     request.fields.push_back("name");
-    request.fields.push_back("img");
     request.fields.push_back("salary");    
 
     msg.data.clear();
@@ -172,6 +171,17 @@ static void* client_fun(void* p)
         tv.tv_sec = 1;
         tv.tv_usec = 0;
         select(0, 0, 0,0, &tv);
+
+        int size = tc.read(data, 1024);
+        if(size > 0)
+        {
+            Message msg;
+            extract_msg(data, msg);
+            GetUserInfoResponse response;
+            get_response(response, msg.data);
+        }
+
+        data.clear();
     }
 
     return 0;

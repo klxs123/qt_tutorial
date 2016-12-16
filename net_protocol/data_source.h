@@ -8,7 +8,7 @@
 
 #include <string>
 
-
+//just for test
 int get_sql(const GetUserInfoRequest& request, std::string& sql);
 
 

@@ -20,4 +20,8 @@ int extract_packages(string& data,string& pkg);
 int extract_msg(string& data, Message& msg);
 
 
+
+//command <---convert----> package
+int command_to_package(const GetUserInfoResponse& response, string& data);
+
 #endif

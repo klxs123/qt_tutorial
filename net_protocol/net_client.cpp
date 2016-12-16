@@ -96,5 +96,6 @@ int tcp_client::write(const string &data)
 
 void tcp_client::close()
 {
-
+    ::close(m_sockfd);
+    m_sockfd = -1;
 }
