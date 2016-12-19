@@ -17,21 +17,7 @@ static const int TIMEOUT = 5;
 
 tcp_server::~tcp_server()
 {
-    for(list<tcp_session*>::iterator it = m_sessions.begin(); it!= m_sessions.end(); it++)
-    {
-        delete *it;
-    }
-
-    m_sessions.clear();
-    for(list<client_sock>::iterator it = m_clientfds.begin(); it!= m_clientfds.end(); it++)
-    {
-        ::close(it->sockfd);
-    }
-
-    if(m_sockfd > 0)
-    {
-        ::close(m_sockfd);
-    }
+    stop();
 }
 
 tcp_server::tcp_server(const std::string &ip, uint32_t port):m_sockfd(-1)
@@ -50,7 +36,6 @@ void* tcp_server::listen_thread(void* p)
     fd_set writefds;
 
     struct timeval timeout;
-    obj->m_stopped = false;
 
     int sockfd = obj->sockfd();
     while (!obj->m_stop)
@@ -119,7 +104,6 @@ void* tcp_server::listen_thread(void* p)
 
     }
 
-    obj->m_stopped = true;
 
     return 0;
 }
@@ -161,6 +145,7 @@ int tcp_server::start()
     {
         return -1;
     }
+    m_stopped = false;
     m_stop = false;
 
     m_sockfd = socket(AF_INET, SOCK_STREAM, 0);
@@ -194,7 +179,9 @@ int tcp_server::start()
         if(pthread_create(&m_sessionPID, 0, session_thread, this) !=0)
         {
             m_stop = true;
+
             pthread_join(m_listenPID, 0);
+            m_stopped = true;
         }
     }
 
@@ -202,14 +189,33 @@ int tcp_server::start()
     return m_stopped?-1:0;
 }
 
-void tcp_server::stop(bool sync)
+void tcp_server::stop()
 {
+    if(m_stopped)
+    {
+        return;
+    }
     m_stop = true;
     //等待线程结束
-    if(sync)
+
+    pthread_join(m_listenPID, 0);
+    pthread_join(m_sessionPID, 0);
+
+
+    for(list<tcp_session*>::iterator it = m_sessions.begin(); it!= m_sessions.end(); it++)
     {
-        pthread_join(m_listenPID, 0);
-        pthread_join(m_sessionPID, 0);
+        delete *it;
+    }
+
+    m_sessions.clear();
+    for(list<client_sock>::iterator it = m_clientfds.begin(); it!= m_clientfds.end(); it++)
+    {
+        ::close(it->sockfd);
+    }
+
+    if(m_sockfd > 0)
+    {
+        ::close(m_sockfd);
     }
 
     m_stopped = true;

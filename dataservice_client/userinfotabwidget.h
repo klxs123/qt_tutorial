@@ -11,6 +11,8 @@ public:
 
 public slots:
     void onUserNameChanged(const QString& name);
+private slots:
+    void onCloseTabRequest(int);
 };
 
 #endif // USERINFOTABWIDGET_H

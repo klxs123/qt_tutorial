@@ -19,6 +19,7 @@ public:
     ~Connect();
     void setDatabaseInfo(const DatabaseInfo&);
     const DatabaseInfo& getDatabaseInfo() const;
+    int exec();
 
 private:
     Ui::Connect *ui;

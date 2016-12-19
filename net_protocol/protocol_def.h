@@ -20,6 +20,9 @@ enum CommandType
     //               |field len(4bytes)|field data('fieldname':value)|
 
     CT_GetUserInfoResponse,
+    CT_UpdateUserInfoRequest,
+    CT_UpdateUserInfoResponse,
+
     CT_AddUser,//['field01'='xxxx', 'field02'='xxxx',....]
     CT_SetUserInfo,//['username','field01'='xxxx', 'field02'='xxxx',....]
     CT_DelUser,//['username']
@@ -65,6 +68,19 @@ struct GetUserInfoResponse
 
     list< map<string, string>  > users;
 };
+
+//规定更新数据的请求必须包含用户ID(name?)而且要安排在第一个
+struct UpdateUserInfoRequest
+{
+    list< map<string, string>  > datas;
+};
+
+struct UpdateUserInfoResponse
+{
+    bool success;
+
+};
+
 
 struct AddUserRequest
 {

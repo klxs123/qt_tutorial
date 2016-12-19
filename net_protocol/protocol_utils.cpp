@@ -8,27 +8,6 @@
 static const char* field_delimiter = "|";
 using namespace std;
 
-int make_request(const GetUserInfoRequest &request, string &data)
-{
-    data.clear();
-
-    for(std::list<string>::const_iterator it = request.users.begin(); it != request.users.end(); it++)
-    {
-        data.append(*it);
-        data.append(",");
-    }
-
-    data.append(field_delimiter);
-
-    for(std::list<string>::const_iterator it = request.fields.begin(); it != request.fields.end(); it++)
-    {
-        data.append(*it);
-        data.append(",");
-    }
-
-    return 0;
-}
-
 
 static int split_string(const string&src, const char* delimiter, std::list<string> &results)
 {
@@ -46,23 +25,7 @@ static int split_string(const string&src, const char* delimiter, std::list<strin
     return count;
 }
 
-int get_request(GetUserInfoRequest &request, const std::string &data)
-{
 
-    std::size_t end = data.find(field_delimiter, 0);
-    string users_str = data.substr(0,end);
-    string fields_str = data.substr(end+1, data.length());
-    const char* delimiter = ",";
-
-    split_string(users_str, delimiter, request.users);
-
-    split_string(fields_str, delimiter, request.fields);
-#ifdef PROTOCOL_DEBUG
-    printf("get request:%s\n", users_str.c_str());
-#endif
-
-    return 0;
-}
 
 #define LEN_TYPE uint32_t
 const uint32_t LEN_FIELD_LEN = sizeof(LEN_TYPE);
@@ -228,6 +191,49 @@ static int data_to_list_map(list<map<string, string> > & obj, const string& data
     return 0;
 }
 
+
+
+
+int make_request(const GetUserInfoRequest &request, string &data)
+{
+    data.clear();
+
+    for(std::list<string>::const_iterator it = request.users.begin(); it != request.users.end(); it++)
+    {
+        data.append(*it);
+        data.append(",");
+    }
+
+    data.append(field_delimiter);
+
+    for(std::list<string>::const_iterator it = request.fields.begin(); it != request.fields.end(); it++)
+    {
+        data.append(*it);
+        data.append(",");
+    }
+
+    return 0;
+}
+
+
+int get_request(GetUserInfoRequest &request, const std::string &data)
+{
+
+    std::size_t end = data.find(field_delimiter, 0);
+    string users_str = data.substr(0,end);
+    string fields_str = data.substr(end+1, data.length());
+    const char* delimiter = ",";
+
+    split_string(users_str, delimiter, request.users);
+
+    split_string(fields_str, delimiter, request.fields);
+#ifdef PROTOCOL_DEBUG
+    printf("get request:%s\n", users_str.c_str());
+#endif
+
+    return 0;
+}
+
 int make_response(const GetUserInfoResponse &response, string &data)
 {
     uint32_t section_num = response.success?response.users.size(): 0;
@@ -279,4 +285,9 @@ int make_response(const LoginResponse &response, string &data)
 int get_response(LoginResponse &response, const string &data)
 {
     return from_field(response.success, data);
+}
+
+int make_request(const UpdateUserInfoRequest &request, string &msg_data)
+{
+    return 0;
 }

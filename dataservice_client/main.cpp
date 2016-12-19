@@ -20,12 +20,6 @@ int main(int argc, char *argv[])
         return -1;//程序初始化失败
     }
 
-    DatabaseInfo& dbInfo = AppConfig::Instance().getDatabaseInfo();
-    if(DatabaseConnectionPool::Instance().init(dbInfo) !=0)
-    {
-        return -1;//数据库连接初始化失败
-    }
-
     MainWindow w;
     w.show();
 

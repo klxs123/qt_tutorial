@@ -19,4 +19,12 @@ int make_response(const GetUserInfoResponse& response, string& msg_data);
 int get_response(GetUserInfoResponse& response, const string& msg_data);
 
 
+//updateuserinfo command
+int make_request(const UpdateUserInfoRequest& request, string& msg_data);
+int get_request(UpdateUserInfoRequest& request, const string& msg_data);
+int make_response(const UpdateUserInfoResponse& response, string& msg_data);
+int get_response(UpdateUserInfoResponse& response, const string& msg_data);
+
+
+
 #endif

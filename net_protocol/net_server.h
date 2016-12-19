@@ -17,7 +17,7 @@ public:
     tcp_server(const std::string& ip, uint32_t port );
     virtual ~tcp_server();
     int start();
-    void stop(bool sync=false);
+    void stop();
     bool is_stopped() const;
     int sockfd() const;
 protected:

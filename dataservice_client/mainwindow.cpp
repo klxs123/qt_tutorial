@@ -116,9 +116,8 @@ void MainWindow::onConnectClicked()
 {
     Connect con;
     con.setDatabaseInfo(AppConfig::Instance().getDatabaseInfo());
-    con.exec();
 
-    if(con.result() != QDialog::Accepted)
+    if(con.exec() != QDialog::Accepted)
     {
         return;
     }

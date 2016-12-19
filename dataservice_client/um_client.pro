@@ -7,17 +7,18 @@
 QT       += core gui
 
 greaterThan(QT_MAJOR_VERSION, 4): QT += widgets
+#注意!!路径修改为本机环境下的路径
 win32 {
     INCLUDEPATH += "C:\Program Files\MySQL\MySQL Connector C 6.1\include"
     LIBS+= -L"C:\Program Files\MySQL\MySQL Connector C 6.1\lib" -L"C:\Program Files\MySQL\MySQL Connector C 6.1\lib\vs12"   -llibmysql
 }
 
 unix {
-    INCLUDEPATH += /usr/local/mysql/include/
-    LIBS+= -L"/usr/local/mysql/lib/"   -lmysqlclient
+    INCLUDEPATH += /usr/local/mysql/include/ ../net_protocol
+    LIBS+= -L"/usr/local/mysql/lib/"  -L"/mnt/linux_lab/examples/qt_tutorial/bin"  -lmysqlclient -ldataservice_pub
 }
 
-TARGET = um_client
+TARGET = client
 TEMPLATE = app
 
 

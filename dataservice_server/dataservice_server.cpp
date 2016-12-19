@@ -2,19 +2,19 @@
 #include "protocol_utils.h"
 #include "data_source.h"
 
-#include "zf_server.h"
-#include "zf_net_session.h"
+#include "dataservice_server.h"
+#include "dataservice_session.h"
 
 #include <unistd.h>
 
 #include <cstdio>
-zf_server::zf_server(const std::string &ip, uint32_t port):tcp_server(ip, port)
+dataservice_server::dataservice_server(const std::string &ip, uint32_t port):tcp_server(ip, port)
 {
 
 }
 
 
-int  zf_server::on_data_arriving(client_sock& cs)
+int  dataservice_server::on_data_arriving(client_sock& cs)
 {
     char buf[1024] = {0};
     ssize_t size = ::read(cs.sockfd, buf, 1024);
@@ -55,7 +55,7 @@ int  zf_server::on_data_arriving(client_sock& cs)
 
     //todo...
 
-    tcp_session* pts = new zf_tcp_session(cs.sockfd);
+    tcp_session* pts = new dataservice_session(cs.sockfd);
     pts->open();
 
     m_sessions.push_back(pts);

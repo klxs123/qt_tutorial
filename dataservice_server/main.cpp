@@ -6,10 +6,10 @@
 #include <cstring>
 #include <iostream>
 #include <unistd.h>
-#include "protocol_parser.h"
-#include "protocol_utils.h"
+#include <protocol_parser.h>
+#include <protocol_utils.h>
 #include "data_source.h"
-#include "net_client.h"
+#include <net_client.h>
 
 using namespace std;
 
@@ -208,18 +208,31 @@ static void protocol_test()
 
 }
 
-#include "zf_server.h"
+#include "dataservice_server.h"
+
+static dataservice_server* s_pserver = 0;
+
+void net_clean()
+{
+    if(s_pserver)
+    {
+        s_pserver->stop();
+        delete s_pserver;
+    }
+}
 
 void net_test()
 {
-    zf_server server("127.0.0.1", 3333);
-    server.start();
+    atexit(net_clean);
+    s_pserver = new dataservice_server("127.0.0.1", 3333);
+    s_pserver->start();
+
 
     pthread_t tid_client;
     int ret = pthread_create(&tid_client, 0, client_fun, 0);
 
 
-    while(!server.is_stopped())
+    while(!s_pserver->is_stopped())
     {
         timeval tv;
         tv.tv_sec = 1;
@@ -233,11 +246,13 @@ void net_test()
 
 int main(int argc, char *argv[])
 {
+    printf("server starting.......\n");
     init_buffer();
 
     //protocol_test();
 
     net_test();
 
+    printf("server end.......\n");
     return 0;
 }
