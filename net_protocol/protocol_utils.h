@@ -3,6 +3,10 @@
 
 #include "protocol_def.h"
 
+
+
+int split_string(const string&src, const char* delimiter, std::list<string> &results);
+
 //每条命令都分为请求与回应，都需要序列化、反序列化，这样，每条命令都需要4个工具函数
 
 //login command

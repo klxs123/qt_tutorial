@@ -60,6 +60,7 @@ int tcp_client::connect(const std::string &ip, uint16_t port)
 
     m_point.ip = ip;
     m_point.port = port;
+    m_connected = true;
 
     return 0;
 }

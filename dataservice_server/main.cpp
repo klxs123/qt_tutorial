@@ -10,6 +10,7 @@
 #include <protocol_utils.h>
 #include "data_source.h"
 #include <net_client.h>
+#include <fileservice_def.h>
 
 using namespace std;
 
@@ -21,7 +22,7 @@ static const char* msg = "hello!\n";
 
 static string g_buffer;
 
-static void get_msg(Message& msg)
+static void get_userinforequest_msg(Message& msg)
 {
     GetUserInfoRequest request;
     request.users.push_back("Audi");
@@ -37,6 +38,17 @@ static void get_msg(Message& msg)
 
 }
 
+static void get_list_command_msg(Message& msg)
+{
+    ListCommandRequest request;
+    request.user = "zf";
+    request.dir = "/tmp";
+    msg.clear();
+    request.to_data(msg.data);
+    msg.command = CT_ListCommandReqeust;
+    msg.num = 0;
+}
+
 static void *do_productor(void *p)
 {
     string* buffer = (string*)p;
@@ -46,7 +58,7 @@ static void *do_productor(void *p)
     string data;
     while(1)
     {
-        get_msg(msg);
+        get_userinforequest_msg(msg);
 
         msg_to_package(msg, data);
 
@@ -161,27 +173,41 @@ static void* client_fun(void* p)
     msg.clear();
     while(1)
     {
-        get_msg(msg);
+        //get_userinforequest_msg(msg);
+
+        get_list_command_msg(msg);
 
         msg_to_package(msg, data);
 
         tc.write(data);
+
         data.clear();
+
+        int size = 0;
+        do
+        {
+            size = tc.read(data, 1024);
+
+        }while(size == 1024 );
+
+
+        Message msg;
+        if(extract_msg(data, msg) != -1)
+        {
+            //GetUserInfoResponse response;
+            //get_response(response, msg.data);
+            ListCommandResponse response;
+            response.from_data(msg.data);
+            printf("list result:%s\n", response.to_data().data());
+        }
+
+        msg.clear();
+        data.clear();
+
 
         tv.tv_sec = 1;
         tv.tv_usec = 0;
         select(0, 0, 0,0, &tv);
-
-        int size = tc.read(data, 1024);
-        if(size > 0)
-        {
-            Message msg;
-            extract_msg(data, msg);
-            GetUserInfoResponse response;
-            get_response(response, msg.data);
-        }
-
-        data.clear();
     }
 
     return 0;

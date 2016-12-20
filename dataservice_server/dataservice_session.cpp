@@ -2,7 +2,9 @@
 #include "dataservice_session.h"
 #include <protocol_parser.h>
 #include <protocol_utils.h>
+#include <fileservice_def.h>
 #include "data_source.h"
+#include "utility.h"
 dataservice_session::dataservice_session(int sock):tcp_session(sock)
 {
 
@@ -25,7 +27,10 @@ int  dataservice_session::handle_recv_data()
 
 
     Message msg;
-    extract_msg(m_data, msg);
+    if( extract_msg(m_data, msg) == -1)
+    {
+        return -1;
+    }
 
     switch(msg.command)
     {
@@ -41,17 +46,33 @@ int  dataservice_session::handle_recv_data()
         msg.command = CT_GetUserInfoResponse;
         //response object to bytes
         make_response(response, msg.data);
-        //msg object to package(bytes)
-        string data;
-        msg_to_package(msg,data);
-        //send bytes to client
-        ::write(m_sockfd, data.data(), data.length());
+
+    }
+        break;
+    case CT_ListCommandReqeust:
+    {
+        ListCommandRequest request;
+        request.from_data(msg.data);
+
+        ListCommandResponse response;
+        list_files(request.dir, response.infos);
+
+        msg.clear();
+        msg.command = CT_ListCommandResponse;
+        response.to_data(msg.data);
 
     }
         break;
     default:
-        break;
+        return -1;
     }
+
+
+    //msg object to package(bytes)
+    string data;
+    msg_to_package(msg,data);
+    //send bytes to client
+    ::write(m_sockfd, data.data(), data.length());
 
 
     return 0;

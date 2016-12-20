@@ -149,11 +149,16 @@ int tcp_server::start()
     m_stop = false;
 
     m_sockfd = socket(AF_INET, SOCK_STREAM, 0);
+
     if (m_sockfd < 0)
     {
         perror("ERROR opening socket");
         return errno;
     }
+
+    int enable = 1;
+
+    setsockopt(m_sockfd, SOL_SOCKET, SO_REUSEADDR, &enable, sizeof(int));
 
     struct sockaddr_in serv_addr;
     bzero((char *) &serv_addr, sizeof(serv_addr));

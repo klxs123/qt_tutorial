@@ -9,7 +9,7 @@ static const char* field_delimiter = "|";
 using namespace std;
 
 
-static int split_string(const string&src, const char* delimiter, std::list<string> &results)
+int split_string(const string&src, const char* delimiter, std::list<string> &results)
 {
     int count = 0;
     std::size_t start = 0;

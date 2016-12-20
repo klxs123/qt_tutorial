@@ -16,7 +16,7 @@ public:
     tcp_client();
     virtual ~ tcp_client();
     int connect(const std::string& ip, uint16_t port);
-
+    //将读取的数据追加到参数<data>
     int read(std::string& data, size_t len);
     int write(const std::string& data);
 
