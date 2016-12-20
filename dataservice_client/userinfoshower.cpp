@@ -2,8 +2,10 @@
 #include "ui_userinfoshower.h"
 
 #include "userinfomanager.h"
+#include "datamanager.h"
 #include <QFileDialog>
 #include <QImageReader>
+#include <QSplitter>
 
 #include <QApplication>
 
@@ -16,6 +18,7 @@ UserInfoShower::UserInfoShower(QWidget *parent, UserInfoShowerMode mode) :
     ui->setupUi(this);
     ui->le_file->setReadOnly(true);
     ui->bt_upload->setDisabled(true);
+    ui->lb_img->setFixedSize(QSize(100,100));
     m_mode = mode;
 
     connect(ui->bt_browse, SIGNAL(clicked(bool)), this, SLOT(onBrowseClick()));
@@ -26,6 +29,12 @@ UserInfoShower::UserInfoShower(QWidget *parent, UserInfoShowerMode mode) :
     {
         ui->le_user->setEnabled(false);
     }
+
+
+
+    DataManager * pdm = new DataManager(this);
+    ui->layout_main->addWidget(pdm);
+
 }
 
 UserInfoShower::~UserInfoShower()
@@ -54,7 +63,7 @@ void UserInfoShower::setUserInfo(UserInfo *userInfo)
     {
         QPixmap pix;
         pix.loadFromData((const uchar*)m_userInfo->pic.second.c_str(),m_userInfo->pic.second.length());
-        ui->lb_img->setPixmap(pix);
+        ui->lb_img->setPixmap(pix.scaled(QSize(ui->lb_img->width(), ui->lb_img->height())));
     }
     ui->le_user->setText(QString::fromStdString(userInfo->name));
 }
@@ -87,7 +96,9 @@ void UserInfoShower::onBrowseClick()
     ui->le_file->setText(fileName);
 
     QImageReader ir(fileName);
-    ui->lb_img->setPixmap(QPixmap::fromImageReader(&ir));
+    QPixmap pix = QPixmap::fromImageReader(&ir);
+
+    ui->lb_img->setPixmap(pix.scaled(QSize(ui->lb_img->width(), ui->lb_img->height())));
     ui->bt_upload->setDisabled(false);
     m_userInfo->pic.first = true;
 

@@ -18,12 +18,14 @@ public:
     explicit Connect(QWidget *parent = 0);
     ~Connect();
     void setDatabaseInfo(const DatabaseInfo&);
-    const DatabaseInfo& getDatabaseInfo() const;
+    const DatabaseInfo& getDatabaseInfo() ;
     int exec();
-
+private slots:
+    void onTest();
 private:
     Ui::Connect *ui;
     DatabaseInfo m_databaseInfo;
+
 };
 
 #endif // CONNECT_H

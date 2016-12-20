@@ -13,6 +13,7 @@
 using namespace std;
 
 #include "userinfomanager.h"
+#include "datamanager.h"
 
 #include "appconfig.h"
 
@@ -138,18 +139,29 @@ void MainWindow::onUsersListContextMenu(const QPoint &point)
     QModelIndex index = usersList->indexAt(point);
     QMenu myMenu;
 
+    QAction * action = 0;
+
     if(index.isValid())
     {
        QVariant variant =  usersList->model()->data(index, Qt::DisplayRole);
 
        string name = variant.toString().toStdString();
 
-       myMenu.addAction("Open",  this, SLOT(onUserShow()))->setData(QString::fromStdString(name));
-       myMenu.addAction("Erase",  this, SLOT(OnDelUser()))->setData(QString::fromStdString(name));
+       action = myMenu.addAction("Open",  this, SLOT(onUserShow()));
+       action->setData(QString::fromStdString(name));
+       action->setIcon(QIcon(":imgs/res/imgs/open.png"));
+
+       action = myMenu.addAction("Erase",  this, SLOT(OnDelUser()));
+       action->setData(QString::fromStdString(name));
+       action->setIcon(QIcon(":imgs/res/imgs/del.png"));
+
+       action = myMenu.addAction("File Manage", this, SLOT(onOpenDataManager()));
+       action->setData(QString::fromStdString(name));
+       action->setIcon(QIcon(":imgs/res/imgs/data_manager.png"));
     }
 
-    myMenu.addAction("Add",  this, SLOT(OnAddUser()));
-
+    action = myMenu.addAction("Add",  this, SLOT(OnAddUser()));
+    action->setIcon(QIcon(":imgs/res/imgs/add.png"));
 
 
     // Show context menu at handling position
@@ -210,5 +222,10 @@ void MainWindow::OnDelUser()
            break;
        }
    }
+
+}
+
+void MainWindow::onOpenDataManager()
+{
 
 }

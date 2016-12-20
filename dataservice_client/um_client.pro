@@ -16,6 +16,7 @@ win32 {
 unix {
     INCLUDEPATH += /usr/local/mysql/include/ ../net_protocol
     LIBS+= -L"/usr/local/mysql/lib/"  -L"/mnt/linux_lab/examples/qt_tutorial/bin"  -lmysqlclient -ldataservice_pub
+    DEFINES+=unix
 }
 
 TARGET = client
@@ -29,7 +30,14 @@ SOURCES += main.cpp\
     userinfomanager.cpp \
     appconfig.cpp \
     databaseconnectionpool.cpp \
-    userinfotabwidget.cpp
+    userinfotabwidget.cpp \
+    FtpClient/BlockingSocket.cpp \
+    FtpClient/FTPClient.cpp \
+    FtpClient/FTPDataTypes.cpp \
+    FtpClient/FTPFileStatus.cpp \
+    FtpClient/FTPListParse.cpp \
+    datamanager.cpp \
+    datamanagermodel.cpp
 
 HEADERS  += mainwindow.h \
     connect.h \
@@ -39,8 +47,20 @@ HEADERS  += mainwindow.h \
     databaseconnectionpool.h \
     singleton.hpp \
     databaseinfo.hpp \
-    userinfotabwidget.h
+    userinfotabwidget.h \
+    FtpClient/BlockingSocket.h \
+    FtpClient/Definements.h \
+    FtpClient/FTPClient.h \
+    FtpClient/FTPDataTypes.h \
+    FtpClient/FTPFileStatus.h \
+    FtpClient/FTPListParse.h \
+    FtpClient/smart_ptr.h \
+    datamanager.h \
+    datamanagermodel.h
 
 FORMS    += mainwindow.ui \
     connect.ui \
     userinfoshower.ui
+
+RESOURCES += \
+    res.qrc

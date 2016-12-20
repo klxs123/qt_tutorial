@@ -14,6 +14,8 @@ Connect::Connect(QWidget *parent) :
     ui->lb_pwd->setAlignment(Qt::AlignRight);
     ui->lb_user->setAlignment(Qt::AlignRight);
     ui->le_pwd->setEchoMode(QLineEdit::Password);
+
+    connect(ui->bt_test, SIGNAL(clicked(bool)), this, SLOT(onTest()));
 }
 
 Connect::~Connect()
@@ -30,8 +32,13 @@ void Connect::setDatabaseInfo(const DatabaseInfo &info)
     ui->le_pwd->setText(QString::fromStdString(info.pwd));
 }
 
-const DatabaseInfo &Connect::getDatabaseInfo() const
+const DatabaseInfo &Connect::getDatabaseInfo()
 {
+    m_databaseInfo.server = ui->le_ip->text().toStdString();
+    m_databaseInfo.port = ui->le_port->text().toInt();
+    m_databaseInfo.user = ui->le_user->text().toStdString();
+    m_databaseInfo.pwd = ui->le_pwd->text().toStdString();
+
     return m_databaseInfo;
 }
 
@@ -41,14 +48,15 @@ int Connect::exec()
     {
         return QDialog::Rejected;
     }
-    DatabaseInfo dbInfo ;
-    dbInfo.server = ui->le_ip->text().toStdString();
-    dbInfo.port = ui->le_port->text().toInt();
-    dbInfo.user = ui->le_user->text().toStdString();
-    dbInfo.pwd = ui->le_pwd->text().toStdString();
-    if(DatabaseConnectionPool::Instance().init(dbInfo) !=0)
+
+    if(DatabaseConnectionPool::Instance().init(getDatabaseInfo()) !=0)
     {
         return QDialog::Rejected;//数据库连接初始化失败
     }
     return QDialog::Accepted;
+}
+
+void Connect::onTest()
+{
+//todo...
 }

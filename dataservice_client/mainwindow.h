@@ -31,6 +31,7 @@ private slots:
     void OnAddUser();
     void OnAddUser(const QString& name);
     void OnDelUser();
+    void onOpenDataManager();
 
 private:
     Ui::MainWindow *ui;

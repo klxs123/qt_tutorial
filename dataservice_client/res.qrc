@@ -1,0 +1,24 @@
+<RCC>
+    <qresource prefix="/imgs">
+        <file>res/imgs/open.png</file>
+        <file>res/imgs/add.png</file>
+        <file>res/imgs/app.png</file>
+        <file>res/imgs/data_manager.png</file>
+        <file>res/imgs/del.png</file>
+        <file>res/imgs/folder/Folder-16.ico</file>
+        <file>res/imgs/folder/Folder-icon-16.png</file>
+        <file>res/imgs/folder/Folder-icon-24.png</file>
+        <file>res/imgs/folder/Folder-icon-32.png</file>
+        <file>res/imgs/folder/Folder-icon-48.png</file>
+        <file>res/imgs/folder/Folder-icon-128.png</file>
+        <file>res/imgs/folder/Folder-icon-256.png</file>
+        <file>res/imgs/folder/Folder.icns</file>
+        <file>res/imgs/pic/Picture-16.ico</file>
+        <file>res/imgs/pic/Picture-icon-16.png</file>
+        <file>res/imgs/pic/Picture-icon-24.png</file>
+        <file>res/imgs/pic/Picture-icon-32.png</file>
+        <file>res/imgs/pic/Picture-icon-48.png</file>
+        <file>res/imgs/pic/Picture-icon-128.png</file>
+        <file>res/imgs/pic/Picture-icon-256.png</file>
+    </qresource>
+</RCC>

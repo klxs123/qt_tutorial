@@ -21,6 +21,10 @@ MYSQL *DatabaseConnectionPool::getDatabaseObject()
 
 int  DatabaseConnectionPool::init(const DatabaseInfo &info)
 {
+    if(m_databaseObject != 0)
+    {
+        mysql_close(m_databaseObject);
+    }
 
     m_databaseObject = mysql_init(NULL);
 
