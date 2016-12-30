@@ -116,7 +116,7 @@ void MainWindow::showUser(const QString &name, UserInfoShower::UserInfoShowerMod
 void MainWindow::onConnectClicked()
 {
     Connect con;
-    con.setDatabaseInfo(AppConfig::Instance().getDatabaseInfo());
+    con.setConnectInfo(AppConfig::Instance().getConnectInfo());
 
     if(con.exec() != QDialog::Accepted)
     {

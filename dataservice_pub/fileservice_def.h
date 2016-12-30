@@ -47,6 +47,7 @@ struct FileInfo
         data+=",";
         data+=name;
         data+=",";
+        return data;
     }
 
     FileInfo& from_data(const string& data)

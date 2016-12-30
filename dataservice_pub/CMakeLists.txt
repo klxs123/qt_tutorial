@@ -13,6 +13,6 @@ aux_source_directory(. SRC_LIST)
 #设置输出目标文件为共享库文件(原来为可执行文件)
 #add_executable(${PROJECT_NAME} ${SRC_LIST})
 add_library(${PROJECT_NAME} SHARED  ${SRC_LIST})
-target_link_libraries(${PROJECT_NAME} pthread mysqlclient)
+target_link_libraries(${PROJECT_NAME})
 ##mv目标文件到指定目录
 execute_process(COMMAND mv  ${CMAKE_BINARY_DIR}/${LIBRARY_OUTPUT_NAME} ${OUT_DIR}/libdataservice_pub.so)

@@ -87,7 +87,8 @@ CFTPListParser::CFTPListParser() :
    m_lCurrentYear(-1)
 {
    m_tmBase = 0;
-   tm tm = {0};
+   struct tm tm;
+   memset(&tm, 0, sizeof(struct tm));
    GmTime(tm, m_tmBase);
    m_tmBase = -(ToTAI(tm.tm_year + 1900, tm.tm_mon, tm.tm_mday) +
                 tm.tm_hour * 3600 + tm.tm_min * 60 + tm.tm_sec);

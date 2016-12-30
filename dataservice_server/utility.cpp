@@ -24,7 +24,17 @@ int list_files(const std::string &path, list<FileInfo *>& infos)
     struct stat file_stat;
 
     do
-    {
+    {        
+
+        string file_path = path;
+        file_path+="/";
+        file_path+= entry->d_name;
+
+        if(stat(file_path.c_str(), &file_stat) !=0)
+        {
+            continue;
+        }
+
         FileInfo* pinfo = new FileInfo;
         pinfo->name = entry->d_name;
 
@@ -34,19 +44,14 @@ int list_files(const std::string &path, list<FileInfo *>& infos)
         }
         else
         {
-            pinfo->type = FT_File;
-            string file_path = path;
-            file_path+="/";
-            file_path+= pinfo->name;
+            pinfo->type = FT_File;          
 
-            if(stat(file_path.c_str(), &file_stat) ==0)
-            {
-                pinfo->bytes = file_stat.st_size;
-            }
+            pinfo->bytes = file_stat.st_size;
+
         }
 
-       pinfo->create_date = file_stat.st_mtim.tv_sec;
-       pinfo->ower = "just for test";
+        pinfo->create_date = file_stat.st_mtim.tv_sec;
+        pinfo->ower = "just for test";
 
 
         infos.push_back(pinfo);

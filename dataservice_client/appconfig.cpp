@@ -11,13 +11,9 @@ int AppConfig::init()
     return 0;
 }
 
-DatabaseInfo &AppConfig::getDatabaseInfo()
+ConnectInfo &AppConfig::getConnectInfo()
 {
-    return m_databaseInfo;
+    return m_connectInfo;
 }
 
-void AppConfig::setDatabaseInfo(const DatabaseInfo &info)
-{
-    m_databaseInfo = info;
-}
 

@@ -14,7 +14,7 @@ win32 {
 }
 
 unix {
-    INCLUDEPATH += /usr/local/mysql/include/ ../net_protocol
+    INCLUDEPATH += /usr/local/mysql/include/ ../dataservice_pub
     LIBS+= -L"/usr/local/mysql/lib/"  -L"/mnt/linux_lab/examples/qt_tutorial/bin"  -lmysqlclient -ldataservice_pub
     DEFINES+=unix
 }
@@ -27,9 +27,7 @@ SOURCES += main.cpp\
         mainwindow.cpp \
     connect.cpp \
     userinfoshower.cpp \
-    userinfomanager.cpp \
     appconfig.cpp \
-    databaseconnectionpool.cpp \
     userinfotabwidget.cpp \
     FtpClient/BlockingSocket.cpp \
     FtpClient/FTPClient.cpp \
@@ -37,7 +35,8 @@ SOURCES += main.cpp\
     FtpClient/FTPFileStatus.cpp \
     FtpClient/FTPListParse.cpp \
     datamanager.cpp \
-    datamanagermodel.cpp
+    datamanagermodel.cpp \
+    userinfomanager.cpp
 
 HEADERS  += mainwindow.h \
     connect.h \
@@ -56,7 +55,8 @@ HEADERS  += mainwindow.h \
     FtpClient/FTPListParse.h \
     FtpClient/smart_ptr.h \
     datamanager.h \
-    datamanagermodel.h
+    datamanagermodel.h \
+    userinfomanager.h
 
 FORMS    += mainwindow.ui \
     connect.ui \
@@ -64,3 +64,5 @@ FORMS    += mainwindow.ui \
 
 RESOURCES += \
     res.qrc
+
+QMAKE_CXXFLAGS += -Wno-deprecated

@@ -2,14 +2,13 @@
 #include <QApplication>
 #include <cstdlib>
 #include "appconfig.h"
-#include "databaseconnectionpool.h"
 
 #include "FtpClient/FTPClient.h"
 
 
 void cleanup()
 {
-    DatabaseConnectionPool::Instance().clear();
+
 }
 
 void TestFTP()

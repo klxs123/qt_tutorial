@@ -20,7 +20,7 @@ struct UserInfoEx
     pair<bool, string> pic;
 };
 
-#include <singleton.hpp>
+#include "singleton.hpp"
 
 class UserInfoManager : public Singleton<UserInfoManager>
 {

@@ -7,8 +7,7 @@ namespace Ui {
 class Connect;
 }
 
-
-#include "databaseinfo.hpp"
+#include "appconfig.h"
 
 class Connect : public QDialog
 {
@@ -17,14 +16,14 @@ class Connect : public QDialog
 public:
     explicit Connect(QWidget *parent = 0);
     ~Connect();
-    void setDatabaseInfo(const DatabaseInfo&);
-    const DatabaseInfo& getDatabaseInfo() ;
+    void setConnectInfo(const ConnectInfo&);
+    const ConnectInfo& getConnectInfo() ;
     int exec();
 private slots:
     void onTest();
 private:
     Ui::Connect *ui;
-    DatabaseInfo m_databaseInfo;
+    ConnectInfo m_serverInfo;
 
 };
 

@@ -256,18 +256,24 @@ void net_test()
 
     pthread_t tid_client;
     int ret = pthread_create(&tid_client, 0, client_fun, 0);
+    pthread_join(tid_client, 0);
 
 
-    while(!s_pserver->is_stopped())
-    {
-        timeval tv;
-        tv.tv_sec = 1;
-        tv.tv_usec = 0;
-        select(0,0,0,0, &tv);
-    }
+//    while(!s_pserver->is_stopped())
+//    {
+//        timeval tv;
+//        tv.tv_sec = 1;
+//        tv.tv_usec = 0;
+//        select(0,0,0,0, &tv);
+//    }
 }
 
-
+void start_net_service()
+{
+    atexit(net_clean);
+    s_pserver = new dataservice_server("127.0.0.1", 3333);
+    s_pserver->start();
+}
 
 
 int main(int argc, char *argv[])
@@ -277,7 +283,11 @@ int main(int argc, char *argv[])
 
     //protocol_test();
 
-    net_test();
+    //net_test();
+
+    start_net_service();
+
+    pthread_exit(0);
 
     printf("server end.......\n");
     return 0;

@@ -1,6 +1,21 @@
 #include "datamanagermodel.h"
 #include <QIcon>
 
+#include <fileservice_def.h>
+
+using namespace std;
+
+DataManagerModel::~DataManagerModel()
+{
+    for(map<string, list<FileInfo*> >::iterator it = m_infos.begin(); it!= m_infos.end(); it++)
+    {
+        list<FileInfo*>& infos = it->second;
+        for(list<FileInfo*>::iterator fit = infos.begin(); fit!= infos.end(); fit++)
+        {
+            delete *fit;
+        }
+    }
+}
 
 int DataManagerModel::rowCount(const QModelIndex &parent) const
 {
@@ -25,6 +40,10 @@ QVariant DataManagerModel::data(const QModelIndex &index, int role) const
         }
 
        return QIcon(":imgs/res/imgs/data_manager.png");
+    }
+    else if(role == Qt::DisplayRole)
+    {
+        return "name.....";
     }
     return QVariant();
 }
